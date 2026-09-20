@@ -43,6 +43,11 @@
   .w.pick:hover{border-color:var(--kin);background:#fff7e0}
   .w.sel{border-color:var(--aka);background:#fdeeed}
   .w.dim{color:#999}
+  #notice{margin-top:14px;padding:11px 14px;border-radius:6px;font-size:15px;line-height:1.7;display:none}
+  #notice.show{display:block}
+  #notice.info{background:#eef3f8;border:1px solid #c6d6e6;color:var(--ai)}
+  #notice.bad{background:#fdeeed;border:1px solid #e6bdba;color:var(--aka)}
+  #notice.good{background:#f1f8f3;border:1px solid #bcd9c6;color:var(--midori)}
   .yaku{margin-top:14px;font-size:14px;color:#555;line-height:1.85;border-top:1px dashed var(--usu);padding-top:10px}
 
   /* 読み上げの窓 */
@@ -150,6 +155,7 @@
           <span id="turnbadge" class="tag"></span>
         </div>
         <div class="words" id="words"></div>
+        <div id="notice"></div>
         <div class="yaku hide" id="yaku"></div>
       </div>
       <div id="meter"><div id="meterbar"></div></div>
@@ -199,6 +205,9 @@ let G = null;
 
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
 function pad3(n){return String(n).padStart(3,'0');}
+function notice(msg,kind){const n=el('notice');
+  if(!msg){n.className='';n.textContent='';return;}
+  n.className='show '+(kind||'info'); n.textContent=msg;}
 function log(html,cls){const d=document.createElement('div');if(cls)d.className=cls;d.innerHTML=html;
   el('log').prepend(d);}
 
@@ -240,7 +249,7 @@ function nextRound(){
   G.active = G.players.map((_,i)=>i);
   G.phase = G.mode;
   el('btnNext').classList.add('hide');
-  el('bids').innerHTML='';
+  el('bids').innerHTML=''; notice('');
   el('stage').classList.remove('flash'); void el('stage').offsetWidth; el('stage').classList.add('flash');
   el('pno').textContent = `第${G.round}首　（歌番号 ${G.poem.id}）`;
   el('pauthor').textContent = G.poem.author;
@@ -276,8 +285,20 @@ function renderHand(){
   });
 }
 function updatePlayBtn(){
-  const ok = G.phase==='mine' && G.selCard!==null && G.selWord!==null && legalRaise(G.players[0].hand[G.selCard]);
+  const me=G.players[0];
+  const ok = G.phase==='mine' && G.selCard!==null && G.selWord!==null && legalRaise(me.hand[G.selCard]);
   el('btnPlay').disabled = !ok;
+  if(G.phase==='mine' && G.mode==='C'){
+    if(!me.hand.some(k=>legalRaise(k))){
+      notice(`いまの最高は「${KW[G.top.kw].name}（${KW[G.top.kw].pt}点）」です。手札にそれより高い札が無いので、降りるしかありません。`,'info');
+    } else if(G.selCard!==null && !legalRaise(me.hand[G.selCard])){
+      notice(`「${KW[me.hand[G.selCard]].name}（${KW[me.hand[G.selCard]].pt}点）」では、いまの最高「${KW[G.top.kw].name}（${KW[G.top.kw].pt}点）」を上回れません。もっと高い札を選んでください。`,'info');
+    } else if(G.selCard!==null && G.selWord===null){
+      notice('歌の中から、その札に当てはまる語を選んでください。','info');
+    } else if(G.selCard===null && G.selWord!==null){
+      notice('手札から出す札を選んでください。','info');
+    } else { notice(''); }
+  }
   const parts=[];
   if(G.selCard!==null) parts.push(`札：${KW[G.players[0].hand[G.selCard]].name}（${KW[G.players[0].hand[G.selCard]].pt}点）`);
   if(G.selWord!==null) parts.push(`語：${G.poem.t[G.selWord][0]}`);
@@ -392,7 +413,10 @@ function resolveB(){
   });
   G.bids.filter(b=>b.cancelled).forEach(b=>log(`　${G.players[b.pi].name}：${KW[b.kw].name} → ほかの人と重なって相殺`,'r'));
   G.bids.filter(b=>!b.cancelled&&!b.valid).forEach(b=>log(`　${G.players[b.pi].name}：${KW[b.kw].name}「${G.poem.t[b.wi][0]}」→ お手つき`,'r'));
-  if(live.length){ award(live[0]); } else { log('　誰も取れなかった。','r'); }
+  const mine=G.bids.find(b=>b.pi===0);
+  if(mine && mine.cancelled) notice(`あなたの「${KW[mine.kw].name}」は、ほかの人と重なって相殺されました。`,'bad');
+  else if(mine && !mine.valid) notice(`「${G.poem.t[mine.wi][0]}」は「${KW[mine.kw].name}」には当てはまりません。お手つきです。`,'bad');
+  if(live.length){ award(live[0]); } else { log('　誰も取れなかった。','r'); notice('誰も取れませんでした。','info'); }
   finishRound();
 }
 
@@ -441,6 +465,7 @@ function placeC(pi,kw,wi){
   const valid=G.poem.t[wi][1].includes(kw);
   const idx=p.hand.indexOf(kw); if(idx>=0) p.hand.splice(idx,1);
   if(!valid){
+    if(pi===0) notice(`「${G.poem.t[wi][0]}」は「${KW[kw].name}」には当てはまりません。お手つきです。この札を失い、この回から降ります。`,'bad');
     log(`　${p.name}：${KW[kw].name}「${G.poem.t[wi][0]}」→ お手つき。この回から降りる`,'r');
     G.passed.add(pi); renderBids(); renderHand(); return stepC();
   }
@@ -457,6 +482,7 @@ function award(b){
   p.score += KW[b.kw].pt; p.won.push(G.poem.id);
   b.won=true; renderBids();
   G.parent=b.pi;
+  notice(`${p.name}が取りました。「${KW[b.kw].name}」で「${G.poem.t[b.wi][0]}」を指して ${KW[b.kw].pt}点。`, b.pi===0?'good':'info');
   log(`　<b>${p.name}が取った。${KW[b.kw].name}「${G.poem.t[b.wi][0]}」で ${KW[b.kw].pt}点</b>`,'g');
 }
 function finishRound(){
