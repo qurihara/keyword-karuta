@@ -153,7 +153,7 @@
           <option value="strong">強い（ほとんど見落とさず、よく重ねる）</option>
         </select>
         <label>人数（自分を含む）</label>
-        <select id="np"><option selected>2</option><option>3</option><option>4</option></select>
+        <select id="np"><option>2</option><option selected>3</option><option>4</option></select>
       </div>
       <div>
         <label>考える時間の窓（リアルタイム制のみ）</label>
@@ -260,7 +260,7 @@
   </section>
 </main>
 
-<script src="data.js?v=1.0"></script>
+<script src="data.js?v=1.1"></script>
 <script>
 // 版の数字は index.html の data.js の読み込み（?v=…）だけで管理する。直したらそこを上げる
 const VER = (document.querySelector('script[src^="data.js"]').src.match(/v=([\d.]+)/)||[])[1] || '?';
