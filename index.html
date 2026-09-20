@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>百人一首キーワード取り</title>
+<title>百人一首を活用して言葉と文化にふれるゲーム</title>
 <style>
   :root{
     --washi:#f7f2e7; --sumi:#2b2b2b; --ai:#1f3a5f; --aka:#b4413a;
@@ -14,7 +14,7 @@
     font-family:"Hiragino Mincho ProN","Yu Mincho",serif;}
   header{background:var(--ai);color:#fff;padding:10px 16px;display:flex;
     align-items:baseline;gap:14px;flex-wrap:wrap}
-  header h1{font-size:19px;margin:0;letter-spacing:.14em}
+  header h1{font-size:17px;margin:0;letter-spacing:.14em}
   header .sub{font-size:12px;opacity:.8}
   header button{margin-left:auto;background:none;border:1px solid rgba(255,255,255,.5);
     color:#fff;border-radius:4px;padding:5px 12px;font-family:inherit;cursor:pointer;font-size:13px}
@@ -129,8 +129,8 @@
 </head>
 <body>
 <header>
-  <h1>百人一首キーワード取り</h1>
-  <span class="sub">試作 <span id="ver"></span>　中山財団2027年度調査研究の検討用</span>
+  <h1>百人一首を活用して言葉と文化にふれるゲーム</h1>
+  <span class="sub">試作 <span id="ver"></span></span>
   <button id="btnRule">遊び方</button>
 </header>
 
@@ -143,13 +143,8 @@
       <div>
         <label>決着の付け方</label>
         <select id="mode">
-          <option value="C">C　順番に競り上げる（時間の制限なし）</option>
-          <option value="B">B　同時公開の競り（読み上げが終わるまでに出す）</option>
-        </select>
-        <label>Cの進め方</label>
-        <select id="flow">
-          <option value="raise" selected>競り上げる（大富豪のように、より大きな手で上書きする）</option>
-          <option value="once">1周で終了（各自1回だけ出す）</option>
+          <option value="B" selected>リアルタイム制（読み上げが終わるまでに、いっせいに出す）</option>
+          <option value="C">ターン制（順番に1回ずつ出す。時間の制限なし）</option>
         </select>
         <label>機械の強さ</label>
         <select id="lv">
@@ -158,10 +153,10 @@
           <option value="strong">強い（ほとんど見落とさず、よく重ねる）</option>
         </select>
         <label>人数（自分を含む）</label>
-        <select id="np"><option>2</option><option selected>3</option><option>4</option></select>
+        <select id="np"><option selected>2</option><option>3</option><option>4</option></select>
       </div>
       <div>
-        <label>考える時間の窓（Bのみ）</label>
+        <label>考える時間の窓（リアルタイム制のみ）</label>
         <select id="win">
           <option value="shimo" selected>下の句の終わりまで（約8秒）</option>
           <option value="kami">上の句の終わりまで（約4秒）</option>
@@ -203,13 +198,10 @@
     ぴたりの点は、キーワードの点に絵の珍しさの点を足したものです。珍しさは百人一首100首での出現で決めました。
     1首にしか出ない絵（雨、ほととぎす、虫、名所）は10点、2首から4首は7点、5首から9首は4点、10首以上は2点です。<br><br>
     <b>紋の札</b>は絵ではなくキーワードの紋なので、そのキーワードに当てはまる語ならどれにでも使えますが、ぴたりはありません。<br><br>
-    <b>C　順番に出す</b>：前の回の勝者が最初に出し、以後は時計回り。
-    「競り上げる」を選ぶと、大富豪のように、前の人より高い手で上書きしていきます。全員が降りたら最後の人が取ります。
-    「1周で終了」を選ぶと、各自1回だけ出して、最も高い人が取ります。<br>
-    機械の強さは設定で選べます。強さは「どれだけ語を見落とすか」「札をどれだけ重ねたがるか」
-    「点の高い順に選べるか」の3つのゆらぎで決まります。強くしても理論上の最善は打ちません。<br><br>
-    <b>B　同時公開の競り</b>：読み上げが終わるまでに全員が伏せて出し、同時に公開します。
-    同じ合計点が重なると、それらは無効になります（相殺）。残ったうち最も高い人が取ります。
+    <b>リアルタイム制</b>：読み上げが終わるまでに、全員が伏せて出します。同時に公開し、
+    同じ合計点が重なると無効になります（相殺）。残ったうち最も高い人が取ります。<br>
+    <b>ターン制</b>：前の回に取った人から順に、1回ずつ出します。時間の制限はありません。
+    全員が出し終えたら、最も高い人が取ります。あとの人は、前の人が指した語を見てから考えられます。
     </p>
     <p><button class="btn sub" id="btnRuleClose">閉じる</button></p>
   </section>
@@ -228,7 +220,6 @@
       </div>
       <div id="meter"><div id="meterbar"></div></div>
       <div id="meterlabel"></div>
-      <div class="bids" id="bids"></div>
     </div>
 
     <div class="panel">
@@ -241,6 +232,11 @@
       </p>
       <div id="pairs"></div>
       <div id="picked" class="note"></div>
+    </div>
+
+    <div class="panel">
+      <h2>ほかの人の様子</h2>
+      <div class="bids" id="bids"></div>
     </div>
 
     <div class="row">
@@ -264,7 +260,7 @@
   </section>
 </main>
 
-<script src="data.js?v=0.9"></script>
+<script src="data.js?v=1.0"></script>
 <script>
 // 版の数字は index.html の data.js の読み込み（?v=…）だけで管理する。直したらそこを上げる
 const VER = (document.querySelector('script[src^="data.js"]').src.match(/v=([\d.]+)/)||[])[1] || '?';
@@ -343,7 +339,7 @@ function startGame(){
   const LV={ weak:  {miss:0.55, more:0.15, jitter:0.50},
              mid:   {miss:0.30, more:0.40, jitter:0.30},
              strong:{miss:0.05, more:0.80, jitter:0.08} };
-  G={ mode:el('mode').value, win:el('win').value, help:el('help').value==='on', flow:el('flow').value,
+  G={ mode:el('mode').value, win:el('win').value, help:el('help').value==='on',
     voice:el('voice').value, lv:LV[el('lv').value],
     players:Array.from({length:np},(_,i)=>({name:names[i],cpu:i>0,hand:[],score:0,won:[],
       bluff:i===1?0.35:(i===2?0.15:0.5)})),
@@ -454,12 +450,7 @@ function updateUI(){
   el('picked').textContent = G.selCard!==null
     ? `「${cardName(me.hand[G.selCard])}」を選んでいます。歌の中から語を選んでください。`
     : '手札の札を選び、つづけて歌の語を選ぶと、出す手に加わります。何枚でも重ねられます。';
-  if(G.mode==='C'&&G.top){
-    const mm=minMax(G.pairs);
-    if(G.pairs.length && mm.max<=G.top.value){
-      notice(`いまの最高は ${G.top.value}点 です。この手は最大でも ${mm.max}点 なので届きません。札を足すか、降りてください。`,'info');
-    } else notice('');
-  }
+
 }
 
 /* ---------- 読み上げ ---------- */
@@ -584,23 +575,16 @@ function resolveB(){
   finishRound();
 }
 
-/* ---------- C　順番に出す ---------- */
+/* ---------- ターン制　順番に1回ずつ出す ---------- */
 function startAuctionC(){
-  el('btnPass').textContent='降りる'; el('btnPass').classList.remove('hide');
+  el('btnPass').textContent='この歌は出さない'; el('btnPass').classList.remove('hide');
   G.order=[]; for(let i=0;i<G.players.length;i++) G.order.push((G.parent+i)%G.players.length);
   G.cursor=0; G.passed=new Set(); G.turns=0;
   stepC();
 }
 function stepC(){
-  const alive=G.order.filter(i=>!G.passed.has(i));
-  if(G.flow==='once' && G.turns>=G.players.length) return closeC();
-  if(G.top && alive.length===1 && alive[0]===G.top.pi) return closeC();
-  if(alive.length===0){ log('　全員が降りた。誰も取れなかった。','r'); notice('誰も取れませんでした。','info');
-    burst('none','流れた','全員が降りた'); return finishRound(); }
-  let guard=0;
-  while(G.passed.has(G.order[G.cursor%G.order.length])&&guard++<20) G.cursor++;
+  if(G.turns>=G.players.length) return closeC();   // 全員が1回ずつ出したら決着
   const pi=G.order[G.cursor%G.order.length]; G.cursor++; G.turns++;
-  if(G.flow!=='once' && G.top && G.top.pi===pi) return closeC();
   if(pi===0){
     G.phase='mine'; G.pairs=[]; G.selCard=null;
     el('turnbadge').textContent='あなたの番';
@@ -612,8 +596,8 @@ function stepC(){
 }
 function cpuTurnC(pi){
   const p=G.players[pi];
-  const h=makeHand(p.hand, G.top?G.top.value:undefined, Math.random()<p.bluff, G.lv);
-  if(!h || Math.random()<0.10){ G.passed.add(pi); log(`　${p.name}：降りた`,''); renderBids(); return stepC(); }
+  const h=makeHand(p.hand, undefined, Math.random()<p.bluff, G.lv);
+  if(!h || Math.random()<0.08){ G.passed.add(pi); log(`　${p.name}：出さなかった`,''); renderBids(); return stepC(); }
   placeC(pi, h.pairs.map(x=>({hi:x.hi,wi:x.wi})));
 }
 function placeC(pi,pairs){
@@ -631,17 +615,18 @@ function placeC(pi,pairs){
   }
   cards.forEach(c=>{const i=p.hand.indexOf(c); if(i>=0)p.hand.splice(i,1);});
   const total=judged.reduce((s,x)=>s+x.j.value,0);
-  if(G.top && total<=G.top.value){
-    if(pi===0) notice(`この手は ${total}点で、いまの最高 ${G.top.value}点 に届きませんでした。札は戻りません。`,'bad');
-    log(`　${p.name}：${total}点 → 届かず`,'r');
-    renderAll(); return stepC();
-  }
-  G.top={pi, pairs:judged, value:total, valid:true};
-  G.bids=G.bids.filter(b=>b.pi!==pi); G.bids.push(G.top);
+  const bid={pi, pairs:judged, value:total, valid:true};
+  G.bids=G.bids.filter(b=>b.pi!==pi); G.bids.push(bid);
+  if(!G.top || total>G.top.value) G.top=bid;
   log(`　${p.name}：${judged.map(x=>cardName(x.c)+'「'+G.poem.t[x.wi][0]+'」').join('　')}　計${total}点`,'g');
   renderAll(); renderBids(); stepC();
 }
-function closeC(){ if(G.top) award(G.top); finishRound(); }
+function closeC(){
+  const live=G.bids.filter(b=>b.valid).sort((x,y)=>y.value-x.value);
+  if(live.length) award(live[0]);
+  else { log('　誰も取れなかった。','r'); notice('誰も取れませんでした。','info'); burst('none','流れた','誰も出さなかった'); }
+  finishRound();
+}
 
 /* ---------- 決着 ---------- */
 function award(b){
@@ -709,7 +694,7 @@ el('btnPlay').onclick=()=>{
 el('btnPass').onclick=()=>{
   if(G.phase!=='mine')return;
   if(G.mode==='B'){ log('　あなた：出さなかった',''); submitB(null); }
-  else { G.passed.add(0); log('　あなた：降りた',''); G.phase='cpu'; renderBids(); stepC(); }
+  else { G.passed.add(0); log('　あなた：出さなかった',''); G.phase='cpu'; renderBids(); stepC(); }
 };
 </script>
 </body>
