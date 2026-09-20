@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>百人一首キーワード取り</title>
+<style>
+  :root{
+    --washi:#f7f2e7; --sumi:#2b2b2b; --ai:#1f3a5f; --aka:#b4413a;
+    --kin:#b8912f; --usu:#e8dfc9; --midori:#3f6b52;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--washi);color:var(--sumi);
+    font-family:"Hiragino Mincho ProN","Yu Mincho",serif;}
+  header{background:var(--ai);color:#fff;padding:10px 16px;display:flex;
+    align-items:baseline;gap:14px;flex-wrap:wrap}
+  header h1{font-size:19px;margin:0;letter-spacing:.14em}
+  header .sub{font-size:12px;opacity:.8}
+  header button{margin-left:auto;background:none;border:1px solid rgba(255,255,255,.5);
+    color:#fff;border-radius:4px;padding:5px 12px;font-family:inherit;cursor:pointer;font-size:13px}
+  main{max-width:1000px;margin:0 auto;padding:16px}
+  .panel{background:#fff;border:1px solid var(--usu);border-radius:8px;padding:16px;margin-bottom:14px}
+  h2{font-size:16px;margin:0 0 12px;letter-spacing:.08em;color:var(--ai)}
+  label{display:block;margin:10px 0 5px;font-size:14px}
+  select,input[type=number]{font-family:inherit;font-size:15px;padding:6px 8px;
+    border:1px solid #ccc;border-radius:4px;background:#fff}
+  .note{font-size:13px;color:#666;line-height:1.75;margin:8px 0 0}
+  .btn{font-family:inherit;font-size:16px;padding:11px 26px;border-radius:6px;cursor:pointer;
+    border:1px solid var(--ai);background:var(--ai);color:#fff;letter-spacing:.1em}
+  .btn:disabled{opacity:.35;cursor:default}
+  .btn.sub{background:#fff;color:var(--ai)}
+  .btn.warn{background:#fff;color:var(--aka);border-color:var(--aka)}
+
+  /* 場の和歌 */
+  #stage{background:#fff;border:2px solid var(--ai);border-radius:10px;padding:20px 18px;
+    position:relative;min-height:150px}
+  #stage.flash{animation:flash .5s}
+  @keyframes flash{0%{background:#fff8dc}100%{background:#fff}}
+  .poemhead{font-size:13px;color:#777;margin-bottom:12px;display:flex;gap:12px;align-items:center}
+  .words{display:flex;flex-wrap:wrap;gap:5px;line-height:1}
+  .w{font-size:27px;padding:7px 5px;border-radius:5px;border:2px solid transparent;user-select:none}
+  .w.pick{cursor:pointer;border-color:var(--usu);background:#fcfaf3}
+  .w.pick:hover{border-color:var(--kin);background:#fff7e0}
+  .w.sel{border-color:var(--aka);background:#fdeeed}
+  .w.dim{color:#999}
+  .yaku{margin-top:14px;font-size:14px;color:#555;line-height:1.85;border-top:1px dashed var(--usu);padding-top:10px}
+
+  /* 読み上げの窓 */
+  #meter{height:9px;background:var(--usu);border-radius:5px;overflow:hidden;margin:12px 0 4px}
+  #meterbar{height:100%;width:0;background:var(--midori);transition:width .15s linear}
+  #meterlabel{font-size:12px;color:#666}
+
+  /* 手札 */
+  .hand{display:flex;gap:9px;flex-wrap:wrap;margin-top:6px}
+  .kw{width:82px;height:108px;border-radius:7px;border:2px solid var(--ai);background:#fff;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
+    cursor:pointer;transition:transform .12s}
+  .kw:hover{transform:translateY(-5px)}
+  .kw.sel{background:var(--ai);color:#fff;transform:translateY(-8px)}
+  .kw.used{opacity:.3;pointer-events:none}
+  .kw .n{font-size:17px;letter-spacing:.08em}
+  .kw .p{font-size:13px;color:var(--aka)}
+  .kw.sel .p{color:#ffd9a0}
+
+  /* 提示された札 */
+  .bids{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .bid{border:1px solid var(--usu);border-radius:7px;padding:9px 13px;background:#fff;font-size:14px;min-width:150px}
+  .bid .who{font-size:12px;color:#777}
+  .bid .val{font-size:16px;margin-top:3px}
+  .bid.ok{border-color:var(--midori);background:#f2f8f4}
+  .bid.ng{border-color:#bbb;background:#f4f4f4;color:#999}
+  .bid.win{border-color:var(--kin);background:#fff8e6;box-shadow:0 0 0 2px var(--kin) inset}
+
+  /* 得点 */
+  table.score{border-collapse:collapse;width:100%;font-size:14px}
+  table.score th,table.score td{border-bottom:1px solid var(--usu);padding:7px 9px;text-align:left}
+  table.score td.pt{text-align:right;font-size:17px;color:var(--ai)}
+  tr.me td{background:#fbf7ec}
+
+  #log{font-size:13px;line-height:1.95;max-height:190px;overflow:auto;color:#444}
+  #log .r{color:var(--aka)} #log .g{color:var(--midori)} #log .h{font-weight:bold;color:var(--ai)}
+  .row{display:flex;gap:14px;flex-wrap:wrap}
+  .row>*{flex:1;min-width:270px}
+  .hide{display:none}
+  .tag{display:inline-block;font-size:12px;border:1px solid var(--usu);border-radius:3px;
+    padding:2px 7px;margin-left:6px;color:#777}
+</style>
+</head>
+<body>
+<header>
+  <h1>百人一首キーワード取り</h1>
+  <span class="sub">試作 v0.1　中山財団2027年度調査研究の検討用</span>
+  <button id="btnRule">遊び方</button>
+</header>
+
+<main>
+  <!-- 設定 -->
+  <section id="setup" class="panel">
+    <h2>設定</h2>
+    <div class="row">
+      <div>
+        <label>決着の付け方</label>
+        <select id="mode">
+          <option value="C">C　順番に競り上げる（時間の制限なし）</option>
+          <option value="B">B　同時公開の競り（読み上げが終わるまでに出す）</option>
+        </select>
+        <label>人数（自分を含む）</label>
+        <select id="np"><option>2</option><option selected>3</option><option>4</option></select>
+      </div>
+      <div>
+        <label>考える時間の窓（Bのみ）</label>
+        <select id="win">
+          <option value="shimo" selected>下の句の終わりまで（約17秒）</option>
+          <option value="kami">上の句の終わりまで（約8秒）</option>
+          <option value="none">制限なし</option>
+        </select>
+        <label>支援</label>
+        <select id="help">
+          <option value="on" selected>現代語訳を見せる</option>
+          <option value="off">見せない</option>
+        </select>
+        <p class="note">支援では語の意味を見せますが、その語がどのキーワードに当たるかは見せません。<br>
+        分類まで見せると、探す仕事が消えてしまうためです。</p>
+      </div>
+    </div>
+    <p style="margin-top:18px"><button class="btn" id="btnStart">はじめる</button></p>
+  </section>
+
+  <!-- 遊び方 -->
+  <section id="rule" class="panel hide">
+    <h2>遊び方</h2>
+    <p class="note">
+    読み札を1枚めくって場に出し、読み上げが流れます。<br>
+    手札のキーワード札を1枚出し、その根拠になる語を歌の中から指します。たとえば「四季」の札なら「秋」を指します。<br>
+    当たっていればキーワードの得点を得て、その和歌札を取ります。外れればお手つきで、その回から降ります。<br>
+    山札が尽きたら終わり、合計点の多い人が勝ちです。<br><br>
+    <b>C　順番に競り上げる</b>：前の回の勝者が最初に出し、以後は時計回りに進みます。自分の番では、いま出ている札より高い札を出すか、降りるかを選びます。全員が降りたら、最後に出した人が取ります。<br>
+    <b>B　同時公開の競り</b>：読み上げが終わるまでに、全員が伏せて1枚を出します。同じキーワードが複数出たら、それらはすべて無効になります（相殺）。残ったうち最も高い札を出した人が取ります。<br><br>
+    得点は　四季1点／自然2点／感情3点／朝と夜4点／天候5点／生き物6点／地名7点。
+    </p>
+    <p><button class="btn sub" id="btnRuleClose">閉じる</button></p>
+  </section>
+
+  <!-- 対局 -->
+  <section id="game" class="hide">
+    <div class="panel">
+      <div id="stage">
+        <div class="poemhead">
+          <span id="pno"></span><span id="pauthor"></span>
+          <span id="turnbadge" class="tag"></span>
+        </div>
+        <div class="words" id="words"></div>
+        <div class="yaku hide" id="yaku"></div>
+      </div>
+      <div id="meter"><div id="meterbar"></div></div>
+      <div id="meterlabel"></div>
+      <div class="bids" id="bids"></div>
+    </div>
+
+    <div class="panel">
+      <h2>自分の手札</h2>
+      <div class="hand" id="hand"></div>
+      <p style="margin-top:16px">
+        <button class="btn" id="btnPlay" disabled>この札とこの語で出す</button>
+        <button class="btn warn" id="btnPass">降りる</button>
+        <button class="btn sub hide" id="btnNext">次の歌へ</button>
+      </p>
+      <div id="picked" class="note"></div>
+    </div>
+
+    <div class="row">
+      <div class="panel">
+        <h2>得点</h2>
+        <table class="score" id="score"></table>
+        <p class="note" id="remain"></p>
+      </div>
+      <div class="panel">
+        <h2>記録</h2>
+        <div id="log"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 結果 -->
+  <section id="result" class="panel hide">
+    <h2>結果</h2>
+    <table class="score" id="finalscore"></table>
+    <p style="margin-top:18px"><button class="btn" id="btnAgain">もう一度</button></p>
+  </section>
+</main>
+
+<script src="data.js"></script>
+<script>
+const KW = {}; KEYWORDS.forEach(k=>KW[k.id]=k);
+const $ = s=>document.querySelector(s);
+const el = id=>document.getElementById(id);
+
+let G = null;
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
+function pad3(n){return String(n).padStart(3,'0');}
+function log(html,cls){const d=document.createElement('div');if(cls)d.className=cls;d.innerHTML=html;
+  el('log').prepend(d);}
+
+/* ---------- 開始 ---------- */
+function startGame(){
+  const np = +el('np').value;
+  const names = ['あなた','機械の一','機械の二','機械の三'];
+  const pool = [];
+  for(const k in CARD_POOL) for(let i=0;i<CARD_POOL[k];i++) pool.push(k);
+  G = {
+    mode: el('mode').value,
+    win: el('win').value,
+    help: el('help').value==='on',
+    players: Array.from({length:np},(_,i)=>({
+      name:names[i], cpu:i>0, hand:[], score:0, won:[],
+      // 機械ごとの癖。bluff＝安い札で確実に取りにいく度合い
+      bluff: i===1?0.35:(i===2?0.15:0.5)
+    })),
+    pool: shuffle(pool),
+    deck: shuffle(POEMS.map(p=>p.id)),
+    round:0, parent:0, poem:null, bids:[], active:[], top:null, phase:'idle',
+    selCard:null, selWord:null, audio:null, timer:null
+  };
+  G.players.forEach(p=>{while(p.hand.length<5) p.hand.push(drawCard());});
+  el('setup').classList.add('hide'); el('rule').classList.add('hide');
+  el('result').classList.add('hide'); el('game').classList.remove('hide');
+  el('log').innerHTML='';
+  nextRound();
+}
+function drawCard(){ if(!G.pool.length){const pool=[];for(const k in CARD_POOL)for(let i=0;i<CARD_POOL[k];i++)pool.push(k);G.pool=shuffle(pool);} return G.pool.pop(); }
+
+/* ---------- 1首 ---------- */
+function nextRound(){
+  if(!G.deck.length){ return endGame(); }
+  G.round++;
+  const pid = G.deck.pop();
+  G.poem = POEMS.find(p=>p.id===pid);
+  G.bids = []; G.top = null; G.selCard=null; G.selWord=null;
+  G.active = G.players.map((_,i)=>i);
+  G.phase = G.mode;
+  el('btnNext').classList.add('hide');
+  el('bids').innerHTML='';
+  el('stage').classList.remove('flash'); void el('stage').offsetWidth; el('stage').classList.add('flash');
+  el('pno').textContent = `第${G.round}首　（歌番号 ${G.poem.id}）`;
+  el('pauthor').textContent = G.poem.author;
+  el('yaku').textContent = G.poem.yaku;
+  el('yaku').classList.toggle('hide', !G.help);
+  renderWords(); renderHand(); renderScore();
+  el('remain').textContent = `山札は残り ${G.deck.length} 枚`;
+  log(`<span class="h">第${G.round}首</span>　${G.poem.author}`,'');
+  playReading();
+  if(G.mode==='C'){ startAuctionC(); } else { startSealedB(); }
+}
+
+function renderWords(){
+  const box = el('words'); box.innerHTML='';
+  G.poem.t.forEach(([txt,ks],i)=>{
+    const s=document.createElement('span');
+    s.className='w'+(ks.length?' pick':' dim');
+    s.textContent=txt;
+    if(ks.length){ s.onclick=()=>{ if(G.phase!=='mine')return; G.selWord=i; renderWords(); updatePlayBtn(); }; }
+    if(G.selWord===i) s.classList.add('sel');
+    box.appendChild(s);
+  });
+}
+function renderHand(){
+  const box=el('hand'); box.innerHTML='';
+  const me=G.players[0];
+  me.hand.forEach((k,i)=>{
+    const c=document.createElement('div');
+    c.className='kw'+(G.selCard===i?' sel':'')+(G.phase!=='mine'?' used':'');
+    c.innerHTML=`<div class="n">${KW[k].name}</div><div class="p">${KW[k].pt}点</div>`;
+    c.onclick=()=>{ if(G.phase!=='mine')return; G.selCard=i; renderHand(); updatePlayBtn(); };
+    box.appendChild(c);
+  });
+}
+function updatePlayBtn(){
+  const ok = G.phase==='mine' && G.selCard!==null && G.selWord!==null && legalRaise(G.players[0].hand[G.selCard]);
+  el('btnPlay').disabled = !ok;
+  const parts=[];
+  if(G.selCard!==null) parts.push(`札：${KW[G.players[0].hand[G.selCard]].name}（${KW[G.players[0].hand[G.selCard]].pt}点）`);
+  if(G.selWord!==null) parts.push(`語：${G.poem.t[G.selWord][0]}`);
+  if(G.mode==='C'&&G.top) parts.push(`いまの最高は ${KW[G.top.kw].name}（${KW[G.top.kw].pt}点）なので、それより高い札が要る`);
+  el('picked').textContent = parts.join('　／　');
+}
+function legalRaise(kwid){
+  if(G.mode!=='C') return true;
+  return !G.top || KW[kwid].pt > KW[G.top.kw].pt;
+}
+
+/* ---------- 読み上げ ---------- */
+// 音声が置かれていないとき（GitHub Pages など）は、決まった秒数で代用する
+const FALLBACK_SEC = { kami:8, shimo:17 };
+function playReading(){
+  stopAudio();
+  const deadline = (G.mode==='B' && G.win!=='none');
+  const a=new Audio(`sounds/I-${pad3(G.poem.id)}A.mp3`);
+  const b=new Audio(`sounds/I-${pad3(G.poem.id)}B.mp3`);
+  G.audio={a,b,phase:'a',ok:true};
+  a.onerror=()=>{ if(!G.audio) return; G.audio.ok=false; startFallback(deadline); };
+  a.onended=()=>{
+    if(!G.audio) return;
+    if(deadline && G.win==='kami'){ closeWindow(); return; }
+    G.audio.phase='b'; b.play().catch(()=>{});
+  };
+  b.onended=()=>{ if(deadline && G.win==='shimo') closeWindow(); else setMeter(1,'読み上げ終わり'); };
+  a.play().catch(()=>{ if(G.audio){G.audio.ok=false; startFallback(deadline);} });
+  if(deadline){
+    G.timer=setInterval(()=>{
+      if(!G.audio || !G.audio.ok) return;
+      const da=a.duration||8, db=b.duration||9;
+      let ratio;
+      if(G.win==='kami'){ ratio=(a.currentTime||0)/da; }
+      else { ratio = G.audio.phase==='a' ? (a.currentTime||0)/(da+db) : (da+(b.currentTime||0))/(da+db); }
+      setMeter(Math.min(ratio,1), '読み上げが終わるまでに出す');
+    },120);
+  } else { setMeter(0,'時間の制限なし'); }
+}
+function startFallback(deadline){
+  if(G.timer){clearInterval(G.timer);G.timer=null;}
+  if(!deadline){ setMeter(0,'時間の制限なし（音声は入っていません）'); return; }
+  const sec=FALLBACK_SEC[G.win]||17, t0=Date.now();
+  G.timer=setInterval(()=>{
+    const r=(Date.now()-t0)/1000/sec;
+    setMeter(Math.min(r,1), `残り ${Math.max(0,Math.ceil(sec-(Date.now()-t0)/1000))} 秒（音声は入っていません）`);
+    if(r>=1) closeWindow();
+  },120);
+}
+function setMeter(r,label){ el('meterbar').style.width=(r*100)+'%'; el('meterlabel').textContent=label; }
+function stopAudio(){ if(G.timer){clearInterval(G.timer);G.timer=null;}
+  if(G.audio){ try{G.audio.a.pause();G.audio.b.pause();}catch(e){} G.audio=null; } }
+
+/* ---------- B　同時公開 ---------- */
+function startSealedB(){
+  G.phase='mine';
+  el('btnPass').textContent='出さない（パス）';
+  el('btnPass').classList.remove('hide');
+  el('turnbadge').textContent='伏せて1枚を出す';
+  renderHand(); updatePlayBtn();
+}
+function closeWindow(){
+  if(G.phase!=='mine') return;
+  stopAudio(); setMeter(1,'締切');
+  log('　時間切れ。出さなかった。','r');
+  submitB(null);
+}
+function submitB(bid){
+  if(G.phase!=='mine') return;
+  G.phase='resolve'; stopAudio();
+  el('btnPass').classList.add('hide');
+  G.bids=[];
+  if(bid) G.bids.push(bid);
+  // 機械の選択
+  for(let i=1;i<G.players.length;i++){
+    const c=cpuChooseB(i);
+    if(c) G.bids.push(c);
+  }
+  resolveB();
+}
+function cpuChooseB(i){
+  const p=G.players[i];
+  const opts=handOptions(p.hand);
+  if(!opts.length) return null;
+  opts.sort((x,y)=>KW[y.kw].pt-KW[x.kw].pt);
+  let pick = opts[0];
+  // 相殺を読んで、あえて安い札を選ぶことがある
+  if(opts.length>1 && Math.random()<p.bluff) pick = opts[1+((Math.random()*(opts.length-1))|0)];
+  return {pi:i, kw:pick.kw, wi:pick.wi, hi:p.hand.indexOf(pick.kw)};
+}
+function handOptions(hand){
+  // 手札のうち、この歌で正しく指せる（札, 語）の組み合わせ
+  const out=[]; const seen=new Set();
+  hand.forEach(k=>{
+    if(seen.has(k))return; seen.add(k);
+    const wi=G.poem.t.findIndex(([t,ks])=>ks.includes(k));
+    if(wi>=0) out.push({kw:k, wi});
+  });
+  return out;
+}
+function resolveB(){
+  // 相殺
+  const count={}; G.bids.forEach(b=>count[b.kw]=(count[b.kw]||0)+1);
+  G.bids.forEach(b=>{
+    b.valid = G.poem.t[b.wi][1].includes(b.kw);
+    b.cancelled = count[b.kw]>1;
+  });
+  renderBids();
+  const live=G.bids.filter(b=>b.valid && !b.cancelled).sort((x,y)=>KW[y.kw].pt-KW[x.kw].pt);
+  G.bids.forEach(b=>{ // 出した札は失う
+    const p=G.players[b.pi]; const idx=p.hand.indexOf(b.kw); if(idx>=0) p.hand.splice(idx,1);
+  });
+  G.bids.filter(b=>b.cancelled).forEach(b=>log(`　${G.players[b.pi].name}：${KW[b.kw].name} → ほかの人と重なって相殺`,'r'));
+  G.bids.filter(b=>!b.cancelled&&!b.valid).forEach(b=>log(`　${G.players[b.pi].name}：${KW[b.kw].name}「${G.poem.t[b.wi][0]}」→ お手つき`,'r'));
+  if(live.length){ award(live[0]); } else { log('　誰も取れなかった。','r'); }
+  finishRound();
+}
+
+/* ---------- C　順番に競り上げ ---------- */
+function startAuctionC(){
+  el('btnPass').textContent='降りる';
+  el('btnPass').classList.remove('hide');
+  G.order=[]; for(let i=0;i<G.players.length;i++) G.order.push((G.parent+i)%G.players.length);
+  G.cursor=0; G.passed=new Set();
+  stepC();
+}
+function stepC(){
+  // 残り1人（かつ提示あり）なら決着
+  const alive=G.order.filter(i=>!G.passed.has(i));
+  if(G.top && alive.length===1 && alive[0]===G.top.pi){ return closeC(); }
+  if(alive.length===0){ log('　全員が降りた。誰も取れなかった。','r'); return finishRound(); }
+  // 次の手番
+  let guard=0;
+  while(G.passed.has(G.order[G.cursor%G.order.length]) && guard++<20) G.cursor++;
+  const pi=G.order[G.cursor%G.order.length];
+  G.cursor++;
+  if(G.top && G.top.pi===pi) return closeC();
+  if(pi===0){
+    G.phase='mine'; G.selCard=null; G.selWord=null;
+    el('turnbadge').textContent='あなたの番';
+    renderWords(); renderHand(); updatePlayBtn();
+  } else {
+    G.phase='cpu';
+    el('turnbadge').textContent=`${G.players[pi].name}が考えている`;
+    renderHand();
+    setTimeout(()=>cpuTurnC(pi), 900);
+  }
+}
+function cpuTurnC(pi){
+  const p=G.players[pi];
+  const opts=handOptions(p.hand).filter(o=>!G.top || KW[o.kw].pt>KW[G.top.kw].pt);
+  if(!opts.length || Math.random()<0.12){ // 出せない、または温存して降りる
+    G.passed.add(pi); log(`　${p.name}：降りた`,''); renderBids(); return stepC();
+  }
+  opts.sort((x,y)=>KW[x.kw].pt-KW[y.kw].pt);
+  const pick = Math.random()<p.bluff ? opts[0] : opts[opts.length-1]; // 最小限で上回るか、一気に高く出るか
+  placeC(pi, pick.kw, pick.wi);
+}
+function placeC(pi,kw,wi){
+  const p=G.players[pi];
+  const valid=G.poem.t[wi][1].includes(kw);
+  const idx=p.hand.indexOf(kw); if(idx>=0) p.hand.splice(idx,1);
+  if(!valid){
+    log(`　${p.name}：${KW[kw].name}「${G.poem.t[wi][0]}」→ お手つき。この回から降りる`,'r');
+    G.passed.add(pi); renderBids(); renderHand(); return stepC();
+  }
+  G.top={pi,kw,wi,valid:true};
+  G.bids=G.bids.filter(b=>b.pi!==pi); G.bids.push(G.top);
+  log(`　${p.name}：${KW[kw].name}（${KW[kw].pt}点）「${G.poem.t[wi][0]}」`,'g');
+  renderBids(); renderHand(); stepC();
+}
+function closeC(){ if(G.top) award(G.top); finishRound(); }
+
+/* ---------- 決着 ---------- */
+function award(b){
+  const p=G.players[b.pi];
+  p.score += KW[b.kw].pt; p.won.push(G.poem.id);
+  b.won=true; renderBids();
+  G.parent=b.pi;
+  log(`　<b>${p.name}が取った。${KW[b.kw].name}「${G.poem.t[b.wi][0]}」で ${KW[b.kw].pt}点</b>`,'g');
+}
+function finishRound(){
+  G.phase='done'; stopAudio(); setMeter(0,'');
+  el('btnPass').classList.add('hide');
+  el('btnPlay').disabled=true;
+  el('turnbadge').textContent='';
+  el('yaku').classList.remove('hide');
+  G.players.forEach(p=>{ while(p.hand.length<5) p.hand.push(drawCard()); });
+  renderHand(); renderScore(); renderWords();
+  el('btnNext').classList.remove('hide');
+  el('btnNext').textContent = G.deck.length? '次の歌へ' : '結果を見る';
+}
+function renderBids(){
+  const box=el('bids'); box.innerHTML='';
+  G.bids.forEach(b=>{
+    const d=document.createElement('div');
+    let cls='bid'; if(b.won)cls+=' win'; else if(b.cancelled||b.valid===false)cls+=' ng'; else cls+=' ok';
+    d.className=cls;
+    const state=b.won?'取った':(b.cancelled?'相殺':(b.valid===false?'お手つき':''));
+    d.innerHTML=`<div class="who">${G.players[b.pi].name}　${state}</div>
+      <div class="val">${KW[b.kw].name}（${KW[b.kw].pt}点）「${G.poem.t[b.wi][0]}」</div>`;
+    box.appendChild(d);
+  });
+  G.players.forEach((p,i)=>{ if(G.mode==='C'&&G.passed&&G.passed.has(i)&&!G.bids.some(b=>b.pi===i)){
+    const d=document.createElement('div'); d.className='bid ng';
+    d.innerHTML=`<div class="who">${p.name}</div><div class="val">降りた</div>`; box.appendChild(d);} });
+}
+function renderScore(){
+  const t=el('score');
+  t.innerHTML='<tr><th>　</th><th>取った札</th><th>得点</th></tr>'+
+    G.players.map((p,i)=>`<tr class="${i===0?'me':''}"><td>${p.name}</td><td>${p.won.length}枚</td><td class="pt">${p.score}</td></tr>`).join('');
+}
+function endGame(){
+  el('game').classList.add('hide'); el('result').classList.remove('hide');
+  const rank=[...G.players].sort((a,b)=>b.score-a.score);
+  el('finalscore').innerHTML='<tr><th>順位</th><th>　</th><th>取った札</th><th>得点</th></tr>'+
+    rank.map((p,i)=>`<tr class="${p.name==='あなた'?'me':''}"><td>${i+1}</td><td>${p.name}</td><td>${p.won.length}枚</td><td class="pt">${p.score}</td></tr>`).join('');
+}
+
+/* ---------- 操作 ---------- */
+el('btnStart').onclick=startGame;
+el('btnRule').onclick=()=>el('rule').classList.toggle('hide');
+el('btnRuleClose').onclick=()=>el('rule').classList.add('hide');
+el('btnNext').onclick=()=>{ if(G.deck.length) nextRound(); else endGame(); };
+el('btnAgain').onclick=()=>{ el('result').classList.add('hide'); el('setup').classList.remove('hide'); };
+el('btnPlay').onclick=()=>{
+  const me=G.players[0], kw=me.hand[G.selCard], wi=G.selWord;
+  if(G.mode==='B'){ submitB({pi:0,kw,wi}); }
+  else { G.phase='cpu'; placeC(0,kw,wi); }
+};
+el('btnPass').onclick=()=>{
+  if(G.phase!=='mine')return;
+  if(G.mode==='B'){ log('　あなた：出さなかった',''); submitB(null); }
+  else { G.passed.add(0); log('　あなた：降りた',''); G.phase='cpu'; renderBids(); stepC(); }
+};
+</script>
+</body>
+</html>
