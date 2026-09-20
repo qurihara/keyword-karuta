@@ -206,7 +206,7 @@
   </section>
 </main>
 
-<script src="data.js"></script>
+<script src="data.js?v=20260920b"></script>
 <script>
 const KW = {}; KEYWORDS.forEach(k=>KW[k.id]=k);
 const el = id=>document.getElementById(id);
@@ -243,6 +243,10 @@ function valueOf(c, mode){ return mode==='p' ? hiPt(c) : famPt(c); }
 
 /* ---------- 開始 ---------- */
 function startGame(){
+  if(typeof FUDA==='undefined' || typeof MON_N==='undefined'){
+    alert('札のデータが古いまま読み込まれています。\n画面を強制的に読み込み直してください（Mac は command+shift+R、Windows は Ctrl+Shift+R）。');
+    return;
+  }
   const np = +el('np').value;
   const names = ['あなた','機械の一','機械の二','機械の三'];
   G = {
