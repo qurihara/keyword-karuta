@@ -57,13 +57,14 @@
 
   /* 手札 */
   .hand{display:flex;gap:9px;flex-wrap:wrap;margin-top:6px}
-  .kw{width:86px;height:118px;border-radius:7px;border:2px solid var(--ai);background:#fff;
+  .kw{width:88px;height:124px;padding:4px;border-radius:7px;border:2px solid var(--ai);background:#fff;
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
     cursor:pointer;transition:transform .12s}
   .kw:hover{transform:translateY(-5px)}
   .kw.sel{background:var(--ai);color:#fff;transform:translateY(-8px)}
   .kw.used{opacity:.3;pointer-events:none}
-  .kw .n{font-size:20px;letter-spacing:.06em}
+  .kw .n{font-size:20px;letter-spacing:.06em;line-height:1.25;text-align:center}
+  .kw .n.long{font-size:14px;letter-spacing:0}
   .kw .p{font-size:11px;color:var(--aka);line-height:1.5}
   .kw .f{font-size:11px;color:#777}
   .kw.sel .p{color:#ffd9a0} .kw.sel .f{color:#cfd8e4}
@@ -206,7 +207,7 @@
   </section>
 </main>
 
-<script src="data.js?v=20260920b"></script>
+<script src="data.js?v=20260920c"></script>
 <script>
 const KW = {}; KEYWORDS.forEach(k=>KW[k.id]=k);
 const el = id=>document.getElementById(id);
@@ -306,8 +307,8 @@ function renderHand(){
     d.className='kw'+(G.selCard===i?' sel':'')+(G.phase!=='mine'?' used':'')
       +(c.mon?' mon':'')+(hiPt(c)>=10?' hikari':'');
     d.innerHTML = c.mon
-      ? `<div class="n">${KW[c.mon].name}</div><div class="f">の紋</div><div class="p">家族 ${famPt(c)}点</div>`
-      : `<div class="n">${c.fuda.name}</div><div class="f">${KW[c.fuda.fam].name}</div>`
+      ? `<div class="n${KW[c.mon].name.length>=4?' long':''}">${KW[c.mon].name}</div><div class="f">の紋</div><div class="p">家族 ${famPt(c)}点</div>`
+      : `<div class="n${c.fuda.name.length>=4?' long':''}">${c.fuda.name}</div><div class="f">${KW[c.fuda.fam].name}</div>`
         +`<div class="p">ぴたり ${hiPt(c)}点<br>家族 ${famPt(c)}点</div>`;
     d.onclick=()=>{ if(G.phase!=='mine')return; G.selCard=i; renderHand(); updateButtons(); };
     box.appendChild(d);
