@@ -192,7 +192,8 @@
     読み札を1枚めくって場に出し、読み上げが流れます。<br>
     手札の札を選び、つづけて歌の語を選ぶと、出す手に加わります。<b>何枚でも重ねられます。</b>
     出した手の合計点で競います。<br>
-    当てはまらない語を指すとお手つきになり、出した札を失います。<br>
+    当てはまらない語を指した場合は、札は手札に戻りますが、その歌は見送りになります。
+    語がどのキーワードに当たるかは決めにくいものが多いので、札を取り上げる罰は付けていません。<br>
     山札が尽きたら終わり、合計点の多い人が勝ちです。<br><br>
     <b>札の点は自動で決まります</b><br>
     ・<b>ぴたり</b>　絵と語が一致したとき。桜の札で「花」を指す。札に書かれた高いほうの点。<br>
@@ -263,7 +264,7 @@
   </section>
 </main>
 
-<script src="data.js?v=0.7"></script>
+<script src="data.js?v=0.8"></script>
 <script>
 // 版の数字は index.html の data.js の読み込み（?v=…）だけで管理する。直したらそこを上げる
 const VER = (document.querySelector('script[src^="data.js"]').src.match(/v=([\d.]+)/)||[])[1] || '?';
@@ -568,14 +569,15 @@ function resolveB(){
   const cnt={}; G.bids.forEach(b=>{ if(b.valid) cnt[b.value]=(cnt[b.value]||0)+1; });
   G.bids.forEach(b=>{ b.cancelled = b.valid && cnt[b.value]>1; });
   renderBids();
-  G.bids.forEach(b=>{ const p=G.players[b.pi];
+  // 当てはまらなかった手は、札を取り上げない（語の分け方が曖昧なため）
+  G.bids.filter(b=>b.valid).forEach(b=>{ const p=G.players[b.pi];
     b.pairs.forEach(pr=>{ const c=pr.c||p.hand[pr.hi]; const i=p.hand.indexOf(c); if(i>=0)p.hand.splice(i,1); }); });
   const live=G.bids.filter(b=>b.valid&&!b.cancelled).sort((x,y)=>y.value-x.value);
   G.bids.filter(b=>b.cancelled).forEach(b=>log(`　${G.players[b.pi].name}：${b.value}点 → 同じ点と重なって相殺`,'r'));
-  G.bids.filter(b=>!b.valid).forEach(b=>log(`　${G.players[b.pi].name}：お手つき`,'r'));
+  G.bids.filter(b=>!b.valid).forEach(b=>log(`　${G.players[b.pi].name}：当てはまらず`,'r'));
   const mine=G.bids.find(b=>b.pi===0);
   if(mine&&mine.cancelled) notice(`あなたの手（${mine.value}点）は、同じ点の人と重なって相殺されました。`,'bad');
-  else if(mine&&!mine.valid) notice('その組み合わせは当てはまりません。お手つきです。','bad');
+  else if(mine&&!mine.valid) notice('その組み合わせは当てはまりませんでした。札は手札に戻ります。','bad');
   if(live.length) award(live[0]);
   else { log('　誰も取れなかった。','r'); if(!mine||mine.valid) notice('誰も取れませんでした。','info');
     burst('none','流れた','誰も取れなかった'); }
@@ -618,13 +620,16 @@ function placeC(pi,pairs){
   const p=G.players[pi];
   const cards=pairs.map(x=>p.hand[x.hi]);
   const judged=pairs.map((x,i)=>({...x, c:cards[i], j:judgePair(cards[i],x.wi)}));
-  cards.forEach(c=>{const i=p.hand.indexOf(c); if(i>=0)p.hand.splice(i,1);});
   const bad=judged.filter(x=>!x.j);
   if(bad.length){
-    if(pi===0) notice(`「${G.poem.t[bad[0].wi][0]}」は「${cardName(bad[0].c)}」に当てはまりません。お手つきです。出した札を失います。`,'bad');
-    log(`　${p.name}：お手つき（${cardName(bad[0].c)}と「${G.poem.t[bad[0].wi][0]}」）`,'r');
-    renderAll(); return stepC();
+    // 語の分け方は曖昧なので、札は取り上げない。失うのはこの歌を取る機会だけ
+    if(pi===0) notice(`「${G.poem.t[bad[0].wi][0]}」は「${cardName(bad[0].c)}」に当てはまりませんでした。`
+      +`札は手札に戻ります。この歌は見送りです。`,'bad');
+    log(`　${p.name}：当てはまらず、この歌は見送り（${cardName(bad[0].c)}と「${G.poem.t[bad[0].wi][0]}」）`,'r');
+    G.passed.add(pi);
+    renderAll(); renderBids(); return stepC();
   }
+  cards.forEach(c=>{const i=p.hand.indexOf(c); if(i>=0)p.hand.splice(i,1);});
   const total=judged.reduce((s,x)=>s+x.j.value,0);
   if(G.top && total<=G.top.value){
     if(pi===0) notice(`この手は ${total}点で、いまの最高 ${G.top.value}点 に届きませんでした。札は戻りません。`,'bad');
@@ -664,7 +669,7 @@ function renderBids(){
     const d=document.createElement('div');
     let cls='bid'; if(b.won)cls+=' win'; else if(b.cancelled||b.valid===false)cls+=' ng'; else cls+=' ok';
     d.className=cls;
-    const state=b.won?'取った':(b.cancelled?'相殺':(b.valid===false?'お手つき':''));
+    const state=b.won?'取った':(b.cancelled?'相殺':(b.valid===false?'当てはまらず':''));
     const body=b.pairs.map(x=>`${cardName(x.c||G.players[b.pi].hand[x.hi])}${x.j&&x.j.mode==='p'?'（ぴたり）':''}「${G.poem.t[x.wi][0]}」`).join('<br>');
     d.innerHTML=`<div class="who">${G.players[b.pi].name}　${state}　計${b.value}点</div><div class="val">${body}</div>`;
     box.appendChild(d);
