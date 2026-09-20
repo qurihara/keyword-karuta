@@ -12,75 +12,75 @@
   *{box-sizing:border-box}
   body{margin:0;background:var(--washi);color:var(--sumi);
     font-family:"Hiragino Mincho ProN","Yu Mincho",serif;}
-  header{background:var(--ai);color:#fff;padding:10px 16px;display:flex;
+  header{background:var(--ai);color:#fff;padding:7px 16px;display:flex;
     align-items:baseline;gap:14px;flex-wrap:wrap}
   header h1{font-size:17px;margin:0;letter-spacing:.14em}
   header .sub{font-size:12px;opacity:.8}
   header button{margin-left:auto;background:none;border:1px solid rgba(255,255,255,.5);
     color:#fff;border-radius:4px;padding:5px 12px;font-family:inherit;cursor:pointer;font-size:13px}
-  main{max-width:1000px;margin:0 auto;padding:16px}
-  .panel{background:#fff;border:1px solid var(--usu);border-radius:8px;padding:16px;margin-bottom:14px}
-  h2{font-size:16px;margin:0 0 12px;letter-spacing:.08em;color:var(--ai)}
+  main{max-width:1060px;margin:0 auto;padding:10px 14px}
+  .panel{background:#fff;border:1px solid var(--usu);border-radius:8px;padding:11px 14px;margin-bottom:9px}
+  h2{font-size:14px;margin:0 0 7px;letter-spacing:.08em;color:var(--ai)}
   label{display:block;margin:10px 0 5px;font-size:14px}
   select,input[type=number]{font-family:inherit;font-size:15px;padding:6px 8px;
     border:1px solid #ccc;border-radius:4px;background:#fff}
-  .note{font-size:13px;color:#666;line-height:1.75;margin:8px 0 0}
-  .btn{font-family:inherit;font-size:16px;padding:11px 26px;border-radius:6px;cursor:pointer;
+  .note{font-size:12px;color:#666;line-height:1.7;margin:6px 0 0}
+  .btn{font-family:inherit;font-size:15px;padding:8px 20px;border-radius:6px;cursor:pointer;
     border:1px solid var(--ai);background:var(--ai);color:#fff;letter-spacing:.1em}
   .btn:disabled{opacity:.35;cursor:default}
   .btn.sub{background:#fff;color:var(--ai)}
   .btn.warn{background:#fff;color:var(--aka);border-color:var(--aka)}
 
   /* 場の和歌 */
-  #stage{background:#fff;border:2px solid var(--ai);border-radius:10px;padding:20px 18px;
-    position:relative;min-height:150px}
+  #stage{background:#fff;border:2px solid var(--ai);border-radius:10px;padding:12px 14px;
+    position:relative}
   #stage.flash{animation:flash .5s}
   @keyframes flash{0%{background:#fff8dc}100%{background:#fff}}
-  .poemhead{font-size:13px;color:#777;margin-bottom:12px;display:flex;gap:12px;align-items:center}
+  .poemhead{font-size:12px;color:#777;margin-bottom:7px;display:flex;gap:12px;align-items:center}
   .words{display:flex;flex-wrap:wrap;gap:5px;line-height:1}
-  .w{font-size:27px;padding:7px 5px;border-radius:5px;border:2px solid transparent;user-select:none}
+  .w{font-size:22px;padding:4px 4px;border-radius:5px;border:2px solid transparent;user-select:none}
   .w.pick{cursor:pointer;border-color:var(--usu);background:#fcfaf3}
   .w.pick:hover{border-color:var(--kin);background:#fff7e0}
   .w.sel{border-color:var(--aka);background:#fdeeed}
   .w.dim{color:#999}
-  #notice{margin-top:14px;padding:11px 14px;border-radius:6px;font-size:15px;line-height:1.7;display:none}
+  #notice{margin-top:8px;padding:8px 12px;border-radius:6px;font-size:14px;line-height:1.6;display:none}
   #notice.show{display:block}
   #notice.info{background:#eef3f8;border:1px solid #c6d6e6;color:var(--ai)}
   #notice.bad{background:#fdeeed;border:1px solid #e6bdba;color:var(--aka)}
   #notice.good{background:#f1f8f3;border:1px solid #bcd9c6;color:var(--midori)}
-  .yaku{margin-top:14px;font-size:14px;color:#555;line-height:1.85;border-top:1px dashed var(--usu);padding-top:10px}
+  .yaku{margin-top:8px;font-size:13px;color:#555;line-height:1.7;border-top:1px dashed var(--usu);padding-top:7px}
 
   /* 読み上げの窓 */
-  #meter{height:9px;background:var(--usu);border-radius:5px;overflow:hidden;margin:12px 0 4px}
+  #meter{height:7px;background:var(--usu);border-radius:4px;overflow:hidden;margin:8px 0 3px}
   #meterbar{height:100%;width:0;background:var(--midori);transition:width .15s linear}
-  #meterlabel{font-size:12px;color:#666}
+  #meterlabel{font-size:11px;color:#666}
 
   /* 手札 */
-  .hand{display:flex;gap:9px;flex-wrap:wrap;margin-top:6px}
-  .kw{width:88px;height:136px;padding:4px;border-radius:7px;border:2px solid var(--ai);background:#fff;
+  .hand{display:flex;gap:7px;flex-wrap:wrap;margin-top:2px}
+  .kw{width:74px;height:104px;padding:3px;border-radius:7px;border:2px solid var(--ai);background:#fff;
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
     cursor:pointer;transition:transform .12s}
   .kw:hover{transform:translateY(-5px)}
   .kw.sel{background:var(--ai);color:#fff;transform:translateY(-8px)}
   .kw.used{opacity:.3;pointer-events:none}
-  .kw img{width:58px;height:58px;object-fit:contain;display:block;margin:0 auto 2px}
-  .kw .n{font-size:16px;letter-spacing:.04em;line-height:1.2;text-align:center}
+  .kw img{width:40px;height:40px;object-fit:contain;display:block;margin:0 auto 2px}
+  .kw .n{font-size:13px;letter-spacing:.03em;line-height:1.15;text-align:center}
   .kw.hasimg .n{font-size:13px;color:#555}
-  .kw .n.long{font-size:14px;letter-spacing:0}
-  .kw .p{font-size:11px;color:var(--aka);line-height:1.5}
-  .kw .f{font-size:11px;color:#777}
+  .kw .n.long{font-size:11px;letter-spacing:0}
+  .kw .p{font-size:10px;color:var(--aka);line-height:1.4}
+  .kw .f{font-size:10px;color:#777}
   .kw.sel .p{color:#ffd9a0} .kw.sel .f{color:#cfd8e4}
   .kw.mon{border-style:double;border-width:4px;background:#fbf8f0}
   .kw .ph{height:0}
-  .kw .ring{width:56px;height:56px;border-radius:50%;border:3px solid currentColor;
+  .kw .ring{width:38px;height:38px;border-radius:50%;border:3px solid currentColor;
     display:flex;align-items:center;justify-content:center;margin:0 auto 3px;font-size:15px}
   .kw.hikari{box-shadow:0 0 0 2px var(--kin) inset}
 
   /* 提示された札 */
   .bids{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-  .bid{border:1px solid var(--usu);border-radius:7px;padding:9px 13px;background:#fff;font-size:14px;min-width:150px}
-  .bid .who{font-size:12px;color:#777}
-  .bid .val{font-size:16px;margin-top:3px}
+  .bid{border:1px solid var(--usu);border-radius:6px;padding:6px 10px;background:#fff;font-size:13px;min-width:140px}
+  .bid .who{font-size:11px;color:#777}
+  .bid .val{font-size:14px;margin-top:2px;line-height:1.5}
   .bid.ok{border-color:var(--midori);background:#f2f8f4}
   .bid.ng{border-color:#bbb;background:#f4f4f4;color:#999}
   .bid.win{border-color:var(--kin);background:#fff8e6;box-shadow:0 0 0 2px var(--kin) inset}
@@ -110,9 +110,10 @@
   @keyframes fadeout{to{opacity:0;transform:scale(.96)}}
   tr.gain td{animation:gain 1.1s}
   @keyframes gain{0%{background:#fff3cd}100%{background:transparent}}
-  #pairs{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .handbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:8px}
+  #pairs{display:flex;gap:7px;flex-wrap:wrap}
   #pairs .pair{border:1px solid var(--kin);background:#fffaf0;border-radius:6px;
-    padding:7px 11px;font-size:15px;display:flex;align-items:center;gap:9px}
+    padding:5px 9px;font-size:14px;display:flex;align-items:center;gap:8px}
   #pairs .pair button{border:none;background:none;color:var(--aka);cursor:pointer;
     font-size:16px;font-family:inherit;padding:0 2px}
   #pairs .sum{align-self:center;font-size:14px;color:#555;margin-left:4px}
@@ -225,12 +226,11 @@
     <div class="panel">
       <h2>自分の手札</h2>
       <div class="hand" id="hand"></div>
-      <p style="margin-top:16px">
+      <div class="handbar">
         <button class="btn" id="btnPlay" disabled>この手で出す</button>
         <button class="btn warn" id="btnPass">降りる</button>
-
-      </p>
-      <div id="pairs"></div>
+        <div id="pairs"></div>
+      </div>
       <div id="picked" class="note"></div>
     </div>
 
@@ -260,7 +260,7 @@
   </section>
 </main>
 
-<script src="data.js?v=1.1"></script>
+<script src="data.js?v=1.3"></script>
 <script>
 // 版の数字は index.html の data.js の読み込み（?v=…）だけで管理する。直したらそこを上げる
 const VER = (document.querySelector('script[src^="data.js"]').src.match(/v=([\d.]+)/)||[])[1] || '?';
@@ -449,7 +449,7 @@ function updateUI(){
   if(G.phase!=='mine'){ el('picked').textContent=''; return; }
   el('picked').textContent = G.selCard!==null
     ? `「${cardName(me.hand[G.selCard])}」を選んでいます。歌の中から語を選んでください。`
-    : '手札の札を選び、つづけて歌の語を選ぶと、出す手に加わります。何枚でも重ねられます。';
+    : (G.pairs.length ? '' : '札を選び、つづけて歌の語を選ぶと出す手に加わります。何枚でも重ねられます。');
 
 }
 
@@ -543,7 +543,22 @@ function startSealedB(){
   renderAll(); updateUI();
 }
 function closeWindow(){ if(G.phase!=='mine')return;
-  stopAudio(); setMeter(1,'締切'); log('　時間切れ。出さなかった。','r'); submitB(null); }
+  stopAudio(); setMeter(1,'締切');
+  if(G.pairs.length){ log('　時間切れ。選んでいた手で出した。',''); submitMine(); }
+  else { log('　時間切れ。出さなかった。','r'); submitB(null); }
+}
+// 自分が選んでいる手を出す。ボタンを押したときと、時間切れのときの両方から呼ぶ
+function submitMine(){
+  if(G.phase!=='mine'||!G.pairs.length) return;
+  const pairs=G.pairs.slice();
+  G.pairs=[]; G.selCard=null; renderPairs(); renderWords();
+  if(G.mode==='B'){
+    const me=G.players[0];
+    const judged=pairs.map(x=>({...x,c:me.hand[x.hi],j:judgePair(me.hand[x.hi],x.wi)}));
+    const ok=judged.every(x=>x.j);
+    submitB({pi:0, pairs:judged, value:ok?judged.reduce((s,x)=>s+x.j.value,0):0, valid:ok});
+  } else { G.phase='cpu'; placeC(0,pairs); }
+}
 function submitB(bid){
   if(G.phase!=='mine')return;
   G.phase='resolve'; stopAudio(); el('btnPass').classList.add('hide');
@@ -680,17 +695,7 @@ el('btnStart').onclick=startGame;
 el('btnRule').onclick=()=>el('rule').classList.toggle('hide');
 el('btnRuleClose').onclick=()=>el('rule').classList.add('hide');
 el('btnAgain').onclick=()=>{ el('result').classList.add('hide'); el('setup').classList.remove('hide'); };
-el('btnPlay').onclick=()=>{
-  if(G.phase!=='mine'||!G.pairs.length) return;
-  const pairs=G.pairs.slice();
-  G.pairs=[]; G.selCard=null; renderPairs(); renderWords();   // 出したら選びかけを消す
-  if(G.mode==='B'){
-    const me=G.players[0];
-    const judged=pairs.map(x=>({...x,c:me.hand[x.hi],j:judgePair(me.hand[x.hi],x.wi)}));
-    const ok=judged.every(x=>x.j);
-    submitB({pi:0, pairs:judged, value:ok?judged.reduce((s,x)=>s+x.j.value,0):0, valid:ok});
-  } else { G.phase='cpu'; placeC(0,pairs); }
-};
+el('btnPlay').onclick=submitMine;
 el('btnPass').onclick=()=>{
   if(G.phase!=='mine')return;
   if(G.mode==='B'){ log('　あなた：出さなかった',''); submitB(null); }
