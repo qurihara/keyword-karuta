@@ -71,6 +71,9 @@
   .kw .f{font-size:11px;color:#777}
   .kw.sel .p{color:#ffd9a0} .kw.sel .f{color:#cfd8e4}
   .kw.mon{border-style:double;border-width:4px;background:#fbf8f0}
+  .kw .ph{height:0}
+  .kw .ring{width:56px;height:56px;border-radius:50%;border:3px solid currentColor;
+    display:flex;align-items:center;justify-content:center;margin:0 auto 3px;font-size:15px}
   .kw.hikari{box-shadow:0 0 0 2px var(--kin) inset}
 
   /* 提示された札 */
@@ -97,16 +100,16 @@
   #burst .win{background:var(--aka);color:#fff}
   #burst .lose{background:#5b6b7c;color:#fff}
   #burst .none{background:#8a8a8a;color:#fff}
-  #burst .big{font-size:44px;letter-spacing:.2em;line-height:1.3}
-  #burst .small{font-size:17px;margin-top:9px;opacity:.95}
+  #burst .big{font-size:48px;letter-spacing:.2em;line-height:1.3}
+  #burst .small{font-size:18px;margin-top:10px;opacity:.95}
+  #burst .count{font-size:26px;margin-top:16px;padding-top:12px;letter-spacing:.14em;
+    border-top:1px solid rgba(255,255,255,.35);opacity:.9}
   @keyframes pop{0%{transform:scale(.6);opacity:0}
     35%{transform:scale(1.08);opacity:1} 60%{transform:scale(1)} 100%{transform:scale(1);opacity:1}}
   #burst.fade .card{animation:fadeout .5s forwards}
   @keyframes fadeout{to{opacity:0;transform:scale(.96)}}
   tr.gain td{animation:gain 1.1s}
   @keyframes gain{0%{background:#fff3cd}100%{background:transparent}}
-  #countdown{font-size:16px;color:var(--ai);margin-left:14px;letter-spacing:.06em}
-  #countdown.hide{display:none}
   #pairs{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
   #pairs .pair{border:1px solid var(--kin);background:#fffaf0;border-radius:6px;
     padding:7px 11px;font-size:15px;display:flex;align-items:center;gap:9px}
@@ -233,7 +236,7 @@
       <p style="margin-top:16px">
         <button class="btn" id="btnPlay" disabled>この手で出す</button>
         <button class="btn warn" id="btnPass">降りる</button>
-        <span id="countdown" class="hide"></span>
+
       </p>
       <div id="pairs"></div>
       <div id="picked" class="note"></div>
@@ -260,7 +263,7 @@
   </section>
 </main>
 
-<script src="data.js?v=0.6"></script>
+<script src="data.js?v=0.7"></script>
 <script>
 // 版の数字は index.html の data.js の読み込み（?v=…）だけで管理する。直したらそこを上げる
 const VER = (document.querySelector('script[src^="data.js"]').src.match(/v=([\d.]+)/)||[])[1] || '?';
@@ -276,10 +279,13 @@ function notice(msg,kind){const n=el('notice');
 function burst(kind,big,small){
   const b=el('burst');
   b.className='show';
-  b.innerHTML=`<div class="card ${kind}"><div class="big">${big}</div><div class="small">${small}</div></div>`;
+  b.innerHTML=`<div class="card ${kind}"><div class="big">${big}</div><div class="small">${small}</div>`
+    +`<div class="count" id="count"></div></div>`;
   chime(kind);
-  setTimeout(()=>{ b.className='show fade'; setTimeout(()=>b.className='',500); }, 1250);
 }
+function hideBurst(){ const b=el('burst');
+  if(b.className.indexOf('show')<0) return;
+  b.className='show fade'; setTimeout(()=>{ b.className=''; },450); }
 // 短い音を作って鳴らす。音声ファイルは使わない
 function chime(kind){
   try{
@@ -354,12 +360,12 @@ function drawCard(){ if(!G.pool.length) G.pool=buildPool(); return G.pool.pop();
 function startCountdown(){
   stopCountdown();
   let n=3;
-  const c=el('countdown'); c.classList.remove('hide');
-  const show=()=>c.textContent = G.deck.length ? `次の歌へ　${n}` : `結果へ　${n}`;
+  const show=()=>{ const c=el('count'); if(c) c.textContent = (G.deck.length?'次の歌へ':'結果へ')+`　${n}`; };
   show();
-  G.cd=setInterval(()=>{ n--; if(n<=0){ stopCountdown(); if(G.deck.length) nextRound(); else endGame(); } else show(); },1000);
+  G.cd=setInterval(()=>{ n--; if(n<=0){ stopCountdown(); hideBurst();
+      if(G.deck.length) nextRound(); else endGame(); } else show(); },1000);
 }
-function stopCountdown(){ if(G.cd){clearInterval(G.cd);G.cd=null;} el('countdown').classList.add('hide'); }
+function stopCountdown(){ if(G.cd){clearInterval(G.cd);G.cd=null;} }
 
 /* ---------- 1首 ---------- */
 function nextRound(){
@@ -367,7 +373,7 @@ function nextRound(){
   G.round++;
   const pid=G.deck.pop(); G.poem=POEMS.find(p=>p.id===pid);
   G.bids=[]; G.top=null; G.pairs=[]; G.selCard=null; G.phase=G.mode; G.gain=null;
-  stopCountdown(); el('bids').innerHTML=''; notice('');
+  stopCountdown(); hideBurst(); el('bids').innerHTML=''; notice('');
   el('stage').classList.remove('flash'); void el('stage').offsetWidth; el('stage').classList.add('flash');
   el('pno').textContent=`第${G.round}首　（歌番号 ${G.poem.id}）`;
   el('pauthor').textContent=G.poem.author;
@@ -398,15 +404,23 @@ function renderHand(){
     d.className='kw'+(G.selCard===i?' sel':'')+(G.phase!=='mine'?' used':'')
       +(inhand?' inhand':'')+(c.mon?' mon':'')+(hiPt(c)>=15?' hikari':'')
       +(!c.mon&&c.fuda.img?' hasimg':'');
+    // 絵はあとから差し込む。まだ無い札でも、壊れた画像の印を出さないため
     d.innerHTML = c.mon
-      ? `<div class="n${KW[c.mon].name.length>=4?' long':''}">${KW[c.mon].name}</div><div class="f">の紋</div><div class="p">${KW[c.mon].name} ${famPt(c)}点</div>`
-      : (c.fuda.img?`<img src="images/fuda_web/${c.fuda.img}.png" alt="" onerror="this.remove()">`:'')
-        +`<div class="n${c.fuda.name.length>=4?' long':''}">${c.fuda.name}</div>`
-        +(c.fuda.img?'':`<div class="f">${KW[c.fuda.fam].name}</div>`)
+      ? `<div class="ring">紋</div><div class="n${KW[c.mon].name.length>=4?' long':''}">${KW[c.mon].name}</div>`
+        +`<div class="p">${KW[c.mon].name} ${famPt(c)}点</div>`
+      : `<div class="ph"></div><div class="n${c.fuda.name.length>=4?' long':''}">${c.fuda.name}</div>`
         +`<div class="p">ぴたり ${hiPt(c)}点<br>${KW[c.fuda.fam].name} ${famPt(c)}点</div>`;
+    setImage(d, c.mon ? 'mon_'+c.mon : c.fuda.img);
     if(G.phase==='mine'&&!inhand) d.onclick=()=>{ G.selCard=i; renderHand(); updateUI(); };
     box.appendChild(d);
   });
+}
+// 絵が用意できていれば差し込む。無ければそのままにする
+function setImage(card, slug){
+  if(!slug) return;
+  const im=new Image();
+  im.onload=()=>{ const t=card.querySelector('.ring, .ph'); if(t) t.replaceWith(im); };
+  im.src='images/fuda_web/'+slug+'.png';
 }
 function pickWord(wi){
   if(G.phase!=='mine') return;
