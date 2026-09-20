@@ -105,6 +105,8 @@
   @keyframes fadeout{to{opacity:0;transform:scale(.96)}}
   tr.gain td{animation:gain 1.1s}
   @keyframes gain{0%{background:#fff3cd}100%{background:transparent}}
+  #countdown{font-size:16px;color:var(--ai);margin-left:14px;letter-spacing:.06em}
+  #countdown.hide{display:none}
   #pairs{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
   #pairs .pair{border:1px solid var(--kin);background:#fffaf0;border-radius:6px;
     padding:7px 11px;font-size:15px;display:flex;align-items:center;gap:9px}
@@ -145,6 +147,12 @@
         <select id="flow">
           <option value="raise" selected>競り上げる（大富豪のように、より大きな手で上書きする）</option>
           <option value="once">1周で終了（各自1回だけ出す）</option>
+        </select>
+        <label>機械の強さ</label>
+        <select id="lv">
+          <option value="weak">弱い（見落としが多く、重ねて出すのをためらう）</option>
+          <option value="mid" selected>ふつう（ときどき見落とし、ほどほどに重ねる）</option>
+          <option value="strong">強い（ほとんど見落とさず、よく重ねる）</option>
         </select>
         <label>人数（自分を含む）</label>
         <select id="np"><option>2</option><option selected>3</option><option>4</option></select>
@@ -194,6 +202,8 @@
     <b>C　順番に出す</b>：前の回の勝者が最初に出し、以後は時計回り。
     「競り上げる」を選ぶと、大富豪のように、前の人より高い手で上書きしていきます。全員が降りたら最後の人が取ります。
     「1周で終了」を選ぶと、各自1回だけ出して、最も高い人が取ります。<br>
+    機械の強さは設定で選べます。強さは「どれだけ語を見落とすか」「札をどれだけ重ねたがるか」
+    「点の高い順に選べるか」の3つのゆらぎで決まります。強くしても理論上の最善は打ちません。<br><br>
     <b>B　同時公開の競り</b>：読み上げが終わるまでに全員が伏せて出し、同時に公開します。
     同じ合計点が重なると、それらは無効になります（相殺）。残ったうち最も高い人が取ります。
     </p>
@@ -223,7 +233,7 @@
       <p style="margin-top:16px">
         <button class="btn" id="btnPlay" disabled>この手で出す</button>
         <button class="btn warn" id="btnPass">降りる</button>
-        <button class="btn sub hide" id="btnNext">次の歌へ</button>
+        <span id="countdown" class="hide"></span>
       </p>
       <div id="pairs"></div>
       <div id="picked" class="note"></div>
@@ -250,7 +260,7 @@
   </section>
 </main>
 
-<script src="data.js?v=20260920n"></script>
+<script src="data.js?v=20260920r"></script>
 <script>
 const KW={}; KEYWORDS.forEach(k=>KW[k.id]=k);
 const el=id=>document.getElementById(id);
@@ -318,19 +328,36 @@ function startGame(){
   }
   const np=+el('np').value;
   const names=['あなた','機械の一','機械の二','機械の三'];
+  // miss  … 語を見落とす度合い
+  // more  … 1枚出したあと、さらに重ねようとする度合い
+  // jitter… 点の高い順に選ばず、隣と入れ替えてしまう度合い
+  const LV={ weak:  {miss:0.55, more:0.15, jitter:0.50},
+             mid:   {miss:0.30, more:0.40, jitter:0.30},
+             strong:{miss:0.05, more:0.80, jitter:0.08} };
   G={ mode:el('mode').value, win:el('win').value, help:el('help').value==='on', flow:el('flow').value,
-    voice:el('voice').value,
+    voice:el('voice').value, lv:LV[el('lv').value],
     players:Array.from({length:np},(_,i)=>({name:names[i],cpu:i>0,hand:[],score:0,won:[],
       bluff:i===1?0.35:(i===2?0.15:0.5)})),
     pool:buildPool(), deck:shuffle(POEMS.map(p=>p.id)),
     round:0,parent:0,poem:null,bids:[],top:null,phase:'idle',
     pairs:[],selCard:null,audio:null,timer:null };
-  G.players.forEach(p=>{while(p.hand.length<5)p.hand.push(drawCard());});
+  G.players.forEach(p=>{while(p.hand.length<HAND_MAX)p.hand.push(drawCard());});
   el('setup').classList.add('hide'); el('rule').classList.add('hide');
   el('result').classList.add('hide'); el('game').classList.remove('hide');
   el('log').innerHTML=''; nextRound();
 }
+const HAND_MAX = 5;
 function drawCard(){ if(!G.pool.length) G.pool=buildPool(); return G.pool.pop(); }
+// 次の歌へ、数えながら自動で進む
+function startCountdown(){
+  stopCountdown();
+  let n=3;
+  const c=el('countdown'); c.classList.remove('hide');
+  const show=()=>c.textContent = G.deck.length ? `次の歌へ　${n}` : `結果へ　${n}`;
+  show();
+  G.cd=setInterval(()=>{ n--; if(n<=0){ stopCountdown(); if(G.deck.length) nextRound(); else endGame(); } else show(); },1000);
+}
+function stopCountdown(){ if(G.cd){clearInterval(G.cd);G.cd=null;} el('countdown').classList.add('hide'); }
 
 /* ---------- 1首 ---------- */
 function nextRound(){
@@ -338,7 +365,7 @@ function nextRound(){
   G.round++;
   const pid=G.deck.pop(); G.poem=POEMS.find(p=>p.id===pid);
   G.bids=[]; G.top=null; G.pairs=[]; G.selCard=null; G.phase=G.mode; G.gain=null;
-  el('btnNext').classList.add('hide'); el('bids').innerHTML=''; notice('');
+  stopCountdown(); el('bids').innerHTML=''; notice('');
   el('stage').classList.remove('flash'); void el('stage').offsetWidth; el('stage').classList.add('flash');
   el('pno').textContent=`第${G.round}首　（歌番号 ${G.poem.id}）`;
   el('pauthor').textContent=G.poem.author;
@@ -464,16 +491,34 @@ function allPairs(hand){
   }));
   return out;
 }
-// 合計が min より大きくなる手を作る。欲張り（greedy）に高い組から取る
-function makeHand(hand, min, stingy){
-  const opts=allPairs(hand).sort((a,b)=>b.value-a.value);
+// 合計が min より大きくなる手を作る。
+// 機械は理論上の最善を打たない。語を見落とし、選ぶ順が揺れ、重ねるかどうかも迷う
+function jitter(list, p){
+  for(let i=0;i<list.length-1;i++) if(Math.random()<p){ const t=list[i]; list[i]=list[i+1]; list[i+1]=t; }
+  return list;
+}
+function makeHand(hand, min, stingy, lv){
+  let opts=allPairs(hand);
+  if(lv){
+    // 見落とし。珍しい絵のぴたりほど気づきにくいものとする
+    opts=opts.filter(o=>{
+      const p = o.mode==='p' ? lv.miss*1.3 : lv.miss*0.6;
+      return Math.random() > Math.min(p,0.9);
+    });
+  }
+  opts.sort((a,b)=>b.value-a.value);
+  if(lv) jitter(opts, lv.jitter);
   const usedC=new Set(), usedW=new Set(), picked=[];
   let total=0;
   for(const o of opts){
+    const need = (min!==undefined && total<=min);   // まだ上回っていないので出さざるをえない
+    if(!need && picked.length){
+      if(lv){ if(Math.random() > lv.more) break; }   // ここでやめる
+      else if(stingy) break;
+    }
+    if(picked.length>=4) break;
     if(usedC.has(o.hi)||usedW.has(o.wi)) continue;
     picked.push(o); usedC.add(o.hi); usedW.add(o.wi); total+=o.value;
-    if(min===undefined || total>min){ if(stingy) break; }
-    if(picked.length>=4) break;
   }
   if(min!==undefined && total<=min) return null;
   // けちな手は、上回るのに要る最小限まで削る
@@ -497,7 +542,7 @@ function submitB(bid){
   G.bids=bid?[bid]:[];
   for(let i=1;i<G.players.length;i++){
     const p=G.players[i];
-    const h=makeHand(p.hand, undefined, Math.random()<p.bluff);
+    const h=makeHand(p.hand, undefined, Math.random()<p.bluff, G.lv);
     if(h) G.bids.push({pi:i, pairs:h.pairs, value:h.total, valid:true});
   }
   resolveB();
@@ -549,7 +594,7 @@ function stepC(){
 }
 function cpuTurnC(pi){
   const p=G.players[pi];
-  const h=makeHand(p.hand, G.top?G.top.value:undefined, Math.random()<p.bluff);
+  const h=makeHand(p.hand, G.top?G.top.value:undefined, Math.random()<p.bluff, G.lv);
   if(!h || Math.random()<0.10){ G.passed.add(pi); log(`　${p.name}：降りた`,''); renderBids(); return stepC(); }
   placeC(pi, h.pairs.map(x=>({hi:x.hi,wi:x.wi})));
 }
@@ -593,10 +638,9 @@ function finishRound(){
   el('btnPass').classList.add('hide'); el('btnPlay').disabled=true; el('btnPlay').textContent='この手で出す';
   el('turnbadge').textContent=''; el('yaku').classList.remove('hide');
   G.pairs=[]; G.selCard=null;
-  G.players.forEach(p=>{while(p.hand.length<5)p.hand.push(drawCard());});
+  G.players.forEach(p=>{ while(p.hand.length<HAND_MAX) p.hand.push(drawCard()); });
   renderAll();
-  el('btnNext').classList.remove('hide');
-  el('btnNext').textContent=G.deck.length?'次の歌へ':'結果を見る';
+  startCountdown();
 }
 function renderBids(){
   const box=el('bids'); box.innerHTML='';
@@ -628,7 +672,6 @@ function endGame(){
 el('btnStart').onclick=startGame;
 el('btnRule').onclick=()=>el('rule').classList.toggle('hide');
 el('btnRuleClose').onclick=()=>el('rule').classList.add('hide');
-el('btnNext').onclick=()=>{ if(G.deck.length) nextRound(); else endGame(); };
 el('btnAgain').onclick=()=>{ el('result').classList.add('hide'); el('setup').classList.remove('hide'); };
 el('btnPlay').onclick=()=>{
   if(G.phase!=='mine'||!G.pairs.length) return;
