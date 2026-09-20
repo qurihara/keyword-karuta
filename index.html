@@ -138,8 +138,8 @@
         </select>
         <label>読み上げ</label>
         <select id="voice">
-          <option value="inaba">人の読み（上の句と下の句で約17秒）</option>
-          <option value="tts" selected>合成音声（約7秒。1モーラ200ミリ秒）</option>
+          <option value="kimoto" selected>人の読み（上の句と下の句で約14秒）</option>
+          <option value="tts">合成音声（約7秒。1モーラ200ミリ秒）</option>
           <option value="none">読み上げなし</option>
         </select>
         <label>支援</label>
@@ -230,7 +230,7 @@
   </section>
 </main>
 
-<script src="data.js?v=20260920e"></script>
+<script src="data.js?v=20260920g"></script>
 <script>
 const KW={}; KEYWORDS.forEach(k=>KW[k.id]=k);
 const el=id=>document.getElementById(id);
@@ -377,7 +377,7 @@ function playReading(){
   stopAudio();
   const deadline=(G.mode==='B'&&G.win!=='none');
   if(G.voice==='none'){ startFallback(deadline); return; }
-  const dir = G.voice==='inaba' ? 'sounds_inaba' : 'sounds';
+  const dir = {inaba:'sounds_inaba', kimoto:'sounds_kimoto'}[G.voice] || 'sounds';
   const a=new Audio(`${dir}/I-${pad3(G.poem.id)}A.mp3`), b=new Audio(`${dir}/I-${pad3(G.poem.id)}B.mp3`);
   G.audio={a,b,phase:'a',ok:true};
   a.onerror=()=>{ if(!G.audio)return; G.audio.ok=false; startFallback(deadline); };
@@ -397,7 +397,7 @@ function playReading(){
 function startFallback(deadline){
   if(G.timer){clearInterval(G.timer);G.timer=null;}
   if(!deadline){setMeter(0,'時間の制限なし（音声は入っていません）');return;}
-  const mul = G.voice==='inaba' ? 2.2 : 1;
+  const mul = (G.voice==='inaba'||G.voice==='kimoto') ? 2.0 : 1;
   const sec=(FALLBACK_SEC[G.win]||8)*mul, t0=Date.now();
   G.timer=setInterval(()=>{ const r=(Date.now()-t0)/1000/sec;
     setMeter(Math.min(r,1),`残り ${Math.max(0,Math.ceil(sec-(Date.now()-t0)/1000))} 秒`);
