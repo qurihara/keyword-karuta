@@ -80,55 +80,55 @@ const CARD_POOL = { ki:8, si:8, kn:6, ay:6, tk:5, ik:4, cm:3 };
 
 // ---------------------------------------------------------------
 // 絵札と紋札
-//   fam    … その札が属する家族（KEYWORDSのid）
+//   fam    … その札のキーワード（KEYWORDSのid）
 //   pitari … その絵とぴたり合う語（data.js の語の表記に合わせる）
 //   hi     … ぴたりで出したときの得点。100首での出現の少なさで決めた
 //             光10点（1首）／種7点（2〜4首）／短冊4点（5〜9首）／かす2点（10首以上）
 //   n      … 山札に入れる枚数。出現の多い絵ほど多く入れる
-// 家族として出したときは KEYWORDS の点（四季1点〜地名7点）になる
+// キーワードとして出したときは KEYWORDS の点（四季1点〜地名7点）になる
 // ---------------------------------------------------------------
 const FUDA = [
   // かす（よく出る絵）
-  { name:'山',   fam:'si', hi:2, n:4, pitari:['奥山','高嶺'] },
-  { name:'夜',   fam:'ay', hi:2, n:4, pitari:['夜','霜夜'] },
-  { name:'秋',   fam:'ki', hi:2, n:4, pitari:['秋','秋風'] },
-  { name:'月',   fam:'si', hi:2, n:4, pitari:['月','有明の月'] },
-  { name:'風',   fam:'tk', hi:2, n:4, pitari:['風','山風','秋風'] },
+  { name:'山', img:'yama',   fam:'si', hi:2, n:4, pitari:['奥山','高嶺'] },
+  { name:'夜', img:'yoru',   fam:'ay', hi:2, n:4, pitari:['夜','霜夜'] },
+  { name:'秋', img:'aki',   fam:'ki', hi:2, n:4, pitari:['秋','秋風'] },
+  { name:'月', img:'tsuki',   fam:'si', hi:2, n:4, pitari:['月','有明の月'] },
+  { name:'風', img:'kaze',   fam:'tk', hi:2, n:4, pitari:['風','山風','秋風'] },
   // 短冊
-  { name:'桜',   fam:'si', hi:4, n:3, pitari:['花'] },
-  { name:'紅葉', fam:'si', hi:4, n:3, pitari:['紅葉'] },
-  { name:'雲',   fam:'tk', hi:4, n:3, pitari:['雲'] },
-  { name:'春',   fam:'ki', hi:4, n:3, pitari:['春'] },
-  { name:'夕',   fam:'ay', hi:4, n:3, pitari:['夕','夕暮'] },
-  { name:'田',   fam:'si', hi:4, n:3, pitari:['田','門田'] },
-  { name:'葉',   fam:'si', hi:4, n:3, pitari:['葉','槇'] },
-  { name:'心',   fam:'kn', hi:4, n:3, pitari:['心','しづ心'] },
-  { name:'明け方',fam:'ay', hi:4, n:3, pitari:['朝ぼらけ','明け','有明','有明の月'] },
-  { name:'草',   fam:'si', hi:4, n:3, pitari:['草木','笹原','稲葉','芦'] },
+  { name:'桜', img:'sakura',   fam:'si', hi:4, n:3, pitari:['花'] },
+  { name:'紅葉', img:'momiji', fam:'si', hi:4, n:3, pitari:['紅葉'] },
+  { name:'雲', img:'kumo',   fam:'tk', hi:4, n:3, pitari:['雲'] },
+  { name:'春', img:'haru',   fam:'ki', hi:4, n:3, pitari:['春'] },
+  { name:'夕', img:'yuu',   fam:'ay', hi:4, n:3, pitari:['夕','夕暮'] },
+  { name:'田', img:'ta',   fam:'si', hi:4, n:3, pitari:['田','門田'] },
+  { name:'葉', img:'ha',   fam:'si', hi:4, n:3, pitari:['葉','槇'] },
+  { name:'心', img:'kokoro',   fam:'kn', hi:4, n:3, pitari:['心','しづ心'] },
+  { name:'明け方', img:'akatsuki',fam:'ay', hi:4, n:3, pitari:['朝ぼらけ','明け','有明','有明の月'] },
+  { name:'草', img:'kusa',   fam:'si', hi:4, n:3, pitari:['草木','笹原','稲葉','芦'] },
   // 種
-  { name:'雪',   fam:'tk', hi:7, n:2, pitari:['雪','白雪'] },
-  { name:'露',   fam:'tk', hi:7, n:2, pitari:['露'] },
-  { name:'霧',   fam:'tk', hi:7, n:2, pitari:['霧'] },
-  { name:'霜',   fam:'tk', hi:7, n:2, pitari:['初霜','霜夜'] },
-  { name:'鹿',   fam:'ik', hi:7, n:2, pitari:['鹿'] },
-  { name:'鳥',   fam:'ik', hi:7, n:2, pitari:['山鳥','千鳥'] },
-  { name:'夏',   fam:'ki', hi:7, n:2, pitari:['夏'] },
-  { name:'嵐',   fam:'tk', hi:7, n:2, pitari:['嵐'] },
-  { name:'別れ', fam:'kn', hi:7, n:2, pitari:['別れ'] },
-  { name:'忘れ', fam:'kn', hi:7, n:2, pitari:['忘れ'] },
-  { name:'悲しみ',fam:'kn', hi:7, n:2, pitari:['さびしさ','悲しき'] },
-  { name:'菊',   fam:'si', hi:7, n:2, pitari:['白菊'] },
-  { name:'宵',   fam:'ay', hi:7, n:2, pitari:['宵'] },
+  { name:'雪', img:'yuki',   fam:'tk', hi:7, n:2, pitari:['雪','白雪'] },
+  { name:'露', img:'tsuyu',   fam:'tk', hi:7, n:2, pitari:['露'] },
+  { name:'霧', img:'kiri',   fam:'tk', hi:7, n:2, pitari:['霧'] },
+  { name:'霜', img:'shimo',   fam:'tk', hi:7, n:2, pitari:['初霜','霜夜'] },
+  { name:'鹿', img:'shika',   fam:'ik', hi:7, n:2, pitari:['鹿'] },
+  { name:'鳥', img:'tori',   fam:'ik', hi:7, n:2, pitari:['山鳥','千鳥'] },
+  { name:'夏', img:'natsu',   fam:'ki', hi:7, n:2, pitari:['夏'] },
+  { name:'嵐', img:'arashi',   fam:'tk', hi:7, n:2, pitari:['嵐'] },
+  { name:'別れ', img:'wakare', fam:'kn', hi:7, n:2, pitari:['別れ'] },
+  { name:'忘れ', img:'wasure', fam:'kn', hi:7, n:2, pitari:['忘れ'] },
+  { name:'悲しみ', img:'kanashimi',fam:'kn', hi:7, n:2, pitari:['さびしさ','悲しき'] },
+  { name:'菊', img:'kiku',   fam:'si', hi:7, n:2, pitari:['白菊'] },
+  { name:'宵', img:'yoi',   fam:'ay', hi:7, n:2, pitari:['宵'] },
   // 光（1首にしか出ない絵）
-  { name:'雨',      fam:'tk', hi:10, n:1, pitari:['村雨'] },
-  { name:'ほととぎす',fam:'ik', hi:10, n:1, pitari:['ほととぎす'] },
-  { name:'虫',      fam:'ik', hi:10, n:1, pitari:['きりぎりす'] },
+  { name:'雨', img:'ame',      fam:'tk', hi:10, n:1, pitari:['村雨'] },
+  { name:'ほととぎす', img:'hototogisu',fam:'ik', hi:10, n:1, pitari:['ほととぎす'] },
+  { name:'虫', img:'mushi',      fam:'ik', hi:10, n:1, pitari:['きりぎりす'] },
   // 光（名所絵）
-  { name:'逢坂の関', fam:'cm', hi:10, n:1, pitari:['逢坂の関'] },
-  { name:'富士',     fam:'cm', hi:10, n:1, pitari:['富士','田子の浦','高嶺'] },
-  { name:'吉野',     fam:'cm', hi:10, n:1, pitari:['吉野'] },
-  { name:'天の橋立', fam:'cm', hi:10, n:1, pitari:['天の橋立'] },
+  { name:'逢坂の関', img:'ousaka', fam:'cm', hi:10, n:1, pitari:['逢坂の関'] },
+  { name:'富士', img:'fuji',     fam:'cm', hi:10, n:1, pitari:['富士','田子の浦','高嶺'] },
+  { name:'吉野', img:'yoshino',     fam:'cm', hi:10, n:1, pitari:['吉野'] },
+  { name:'天の橋立', img:'hashidate', fam:'cm', hi:10, n:1, pitari:['天の橋立'] },
 ];
 
-// 紋札（ワイルド）。絵ではなく家族の紋なので、その家族の語ならどれにでも使えるが、ぴたりは無い
-const MON_N = 2;  // 家族ごとの枚数
+// 紋札（ワイルド）。絵ではなくキーワードの紋なので、そのキーワードに当てはまる語ならどれにでも使えるが、ぴたりは無い
+const MON_N = 2;  // キーワードごとの枚数

@@ -57,13 +57,15 @@
 
   /* 手札 */
   .hand{display:flex;gap:9px;flex-wrap:wrap;margin-top:6px}
-  .kw{width:88px;height:124px;padding:4px;border-radius:7px;border:2px solid var(--ai);background:#fff;
+  .kw{width:88px;height:136px;padding:4px;border-radius:7px;border:2px solid var(--ai);background:#fff;
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
     cursor:pointer;transition:transform .12s}
   .kw:hover{transform:translateY(-5px)}
   .kw.sel{background:var(--ai);color:#fff;transform:translateY(-8px)}
   .kw.used{opacity:.3;pointer-events:none}
-  .kw .n{font-size:20px;letter-spacing:.06em;line-height:1.25;text-align:center}
+  .kw img{width:58px;height:58px;object-fit:contain;display:block;margin:0 auto 2px}
+  .kw .n{font-size:16px;letter-spacing:.04em;line-height:1.2;text-align:center}
+  .kw.hasimg .n{font-size:13px;color:#555}
   .kw .n.long{font-size:14px;letter-spacing:0}
   .kw .p{font-size:11px;color:var(--aka);line-height:1.5}
   .kw .f{font-size:11px;color:#777}
@@ -183,12 +185,12 @@
     山札が尽きたら終わり、合計点の多い人が勝ちです。<br><br>
     <b>札の点は自動で決まります</b><br>
     ・<b>ぴたり</b>　絵と語が一致したとき。桜の札で「花」を指す。札に書かれた高いほうの点。<br>
-    ・<b>家族として</b>　絵の属する家族の語ならどれでもよい。桜の札で「山」を指す。家族の点。<br>
+    ・<b>キーワードで</b>　その札のキーワードに当てはまる語ならどれでもよい。自然の札である桜で「山」を指す。キーワードの点。<br>
     どちらになるかは指した語で決まるので、選ぶ必要はありません。出す前は「この手は◯点から◯点」と幅で示します。<br><br>
-    家族の点は　四季1点／自然2点／感情3点／朝と夜4点／天候5点／生き物6点／地名7点。<br>
-    ぴたりの点は、家族の点に絵の珍しさの点を足したものです。珍しさは百人一首100首での出現で決めました。
+    キーワードの点は　四季1点／自然2点／感情3点／朝と夜4点／天候5点／生き物6点／地名7点。<br>
+    ぴたりの点は、キーワードの点に絵の珍しさの点を足したものです。珍しさは百人一首100首での出現で決めました。
     1首にしか出ない絵（雨、ほととぎす、虫、名所）は10点、2首から4首は7点、5首から9首は4点、10首以上は2点です。<br><br>
-    <b>紋の札</b>は絵ではなく家族の紋なので、その家族の語ならどれにでも使えますが、ぴたりはありません。<br><br>
+    <b>紋の札</b>は絵ではなくキーワードの紋なので、そのキーワードに当てはまる語ならどれにでも使えますが、ぴたりはありません。<br><br>
     <b>C　順番に出す</b>：前の回の勝者が最初に出し、以後は時計回り。
     「競り上げる」を選ぶと、大富豪のように、前の人より高い手で上書きしていきます。全員が降りたら最後の人が取ります。
     「1周で終了」を選ぶと、各自1回だけ出して、最も高い人が取ります。<br>
@@ -248,7 +250,7 @@
   </section>
 </main>
 
-<script src="data.js?v=20260920j"></script>
+<script src="data.js?v=20260920n"></script>
 <script>
 const KW={}; KEYWORDS.forEach(k=>KW[k.id]=k);
 const el=id=>document.getElementById(id);
@@ -293,9 +295,9 @@ function buildPool(){
 }
 const famOf=c=>c.mon||c.fuda.fam;
 const famPt=c=>KW[famOf(c)].pt;
-const hiPt=c=>c.mon?0:KW[c.fuda.fam].pt+c.fuda.hi;   // ぴたり＝家族の点＋絵の珍しさ
+const hiPt=c=>c.mon?0:KW[c.fuda.fam].pt+c.fuda.hi;   // ぴたり＝キーワードの点＋絵の珍しさ
 const cardName=c=>c.mon?KW[c.mon].name+'の紋':c.fuda.name;
-// 札と語の組み合わせを判定する。ぴたりなら高い点、家族として通るなら家族の点、どちらでもなければ null
+// 札と語の組み合わせを判定する。ぴたりなら高い点、キーワードとして通ればキーワードの点、どちらでもなければ null
 function judgePair(c,wi){
   const tok=G.poem.t[wi];
   if(!c.mon && c.fuda.pitari.includes(tok[0])) return {mode:'p', value:hiPt(c)};
@@ -365,11 +367,14 @@ function renderHand(){
     const inhand=G.pairs.some(p=>p.hi===i);
     const d=document.createElement('div');
     d.className='kw'+(G.selCard===i?' sel':'')+(G.phase!=='mine'?' used':'')
-      +(inhand?' inhand':'')+(c.mon?' mon':'')+(hiPt(c)>=15?' hikari':'');
+      +(inhand?' inhand':'')+(c.mon?' mon':'')+(hiPt(c)>=15?' hikari':'')
+      +(!c.mon&&c.fuda.img?' hasimg':'');
     d.innerHTML = c.mon
-      ? `<div class="n${KW[c.mon].name.length>=4?' long':''}">${KW[c.mon].name}</div><div class="f">の紋</div><div class="p">家族 ${famPt(c)}点</div>`
-      : `<div class="n${c.fuda.name.length>=4?' long':''}">${c.fuda.name}</div><div class="f">${KW[c.fuda.fam].name}</div>`
-        +`<div class="p">ぴたり ${hiPt(c)}点<br>家族 ${famPt(c)}点</div>`;
+      ? `<div class="n${KW[c.mon].name.length>=4?' long':''}">${KW[c.mon].name}</div><div class="f">の紋</div><div class="p">${KW[c.mon].name} ${famPt(c)}点</div>`
+      : (c.fuda.img?`<img src="images/fuda_web/${c.fuda.img}.png" alt="" onerror="this.remove()">`:'')
+        +`<div class="n${c.fuda.name.length>=4?' long':''}">${c.fuda.name}</div>`
+        +(c.fuda.img?'':`<div class="f">${KW[c.fuda.fam].name}</div>`)
+        +`<div class="p">ぴたり ${hiPt(c)}点<br>${KW[c.fuda.fam].name} ${famPt(c)}点</div>`;
     if(G.phase==='mine'&&!inhand) d.onclick=()=>{ G.selCard=i; renderHand(); updateUI(); };
     box.appendChild(d);
   });
