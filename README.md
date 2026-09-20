@@ -3,7 +3,7 @@
 百人一首の歌の中から、7つのキーワード（四季・自然・感情・朝と夜・天候・生き物・地名）に
 当てはまる語を探して取り合うゲームの試作である。
 
-ブラウザだけで遊べる。 → **https://qurihara.github.io/keyword-karuta/**
+ブラウザだけで遊べる。 → **https://unryu.org/keyword-karuta/**
 
 ## これは何か
 
