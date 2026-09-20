@@ -127,7 +127,7 @@
 <body>
 <header>
   <h1>百人一首キーワード取り</h1>
-  <span class="sub">試作 v0.1　中山財団2027年度調査研究の検討用</span>
+  <span class="sub">試作 <span id="ver"></span>　中山財団2027年度調査研究の検討用</span>
   <button id="btnRule">遊び方</button>
 </header>
 
@@ -260,8 +260,10 @@
   </section>
 </main>
 
-<script src="data.js?v=20260920r"></script>
+<script src="data.js?v=0.6"></script>
 <script>
+// 版の数字は index.html の data.js の読み込み（?v=…）だけで管理する。直したらそこを上げる
+const VER = (document.querySelector('script[src^="data.js"]').src.match(/v=([\d.]+)/)||[])[1] || '?';
 const KW={}; KEYWORDS.forEach(k=>KW[k.id]=k);
 const el=id=>document.getElementById(id);
 let G=null;
@@ -669,6 +671,7 @@ function endGame(){
 }
 
 /* ---------- 操作 ---------- */
+el('ver').textContent = 'v'+VER;
 el('btnStart').onclick=startGame;
 el('btnRule').onclick=()=>el('rule').classList.toggle('hide');
 el('btnRuleClose').onclick=()=>el('rule').classList.add('hide');
