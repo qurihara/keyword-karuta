@@ -110,8 +110,8 @@
       <div>
         <label>考える時間の窓（Bのみ）</label>
         <select id="win">
-          <option value="shimo" selected>下の句の終わりまで（約17秒）</option>
-          <option value="kami">上の句の終わりまで（約8秒）</option>
+          <option value="shimo" selected>下の句の終わりまで（約8秒）</option>
+          <option value="kami">上の句の終わりまで（約4秒）</option>
           <option value="none">制限なし</option>
         </select>
         <label>支援</label>
@@ -291,7 +291,7 @@ function legalRaise(kwid){
 
 /* ---------- 読み上げ ---------- */
 // 音声が置かれていないとき（GitHub Pages など）は、決まった秒数で代用する
-const FALLBACK_SEC = { kami:8, shimo:17 };
+const FALLBACK_SEC = { kami:4, shimo:8 };
 function playReading(){
   stopAudio();
   const deadline = (G.mode==='B' && G.win!=='none');
