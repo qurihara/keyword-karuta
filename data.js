@@ -3,12 +3,13 @@
 // 語の区切りとキーワードの対応は、この案件で人が付けたものである（暫定）
 
 const KEYWORDS = [
+  // 得点は入賞アイディアの添付資料（増村賢二氏、2026-09-25 受領）の設定に合わせた
   { id: 'ki', name: '四季',   pt: 1 },
-  { id: 'si', name: '自然',   pt: 2 },
-  { id: 'kn', name: '感情',   pt: 3 },
-  { id: 'ay', name: '朝と夜', pt: 4 },
-  { id: 'tk', name: '天候',   pt: 5 },
-  { id: 'ik', name: '生き物', pt: 6 },
+  { id: 'si', name: '自然',   pt: 1 },
+  { id: 'ik', name: '生き物', pt: 3 },
+  { id: 'tk', name: '天候',   pt: 3 },
+  { id: 'ay', name: '朝と夜', pt: 5 },
+  { id: 'kn', name: '感情',   pt: 5 },
   { id: 'cm', name: '地名',   pt: 7 },
 ];
 
